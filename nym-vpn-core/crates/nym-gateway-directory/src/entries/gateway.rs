@@ -199,9 +199,16 @@ impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
 
 impl From<nym_vpn_api_client::response::Entry> for Entry {
     fn from(entry: nym_vpn_api_client::response::Entry) -> Self {
+        let (can_connect, can_route) =
+            if let nym_vpn_api_client::response::Entry::Tested(res) = entry {
+                (res.can_connect, res.can_route)
+            } else {
+                (false, false)
+            };
+
         Entry {
-            can_connect: entry.can_connect,
-            can_route: entry.can_route,
+            can_connect,
+            can_route,
         }
     }
 }
@@ -222,10 +229,10 @@ impl From<nym_vpn_api_client::response::WgProbeResults> for WgProbeResults {
     fn from(results: nym_vpn_api_client::response::WgProbeResults) -> Self {
         WgProbeResults {
             can_register: results.can_register,
-            can_handshake: results.can_handshake,
-            can_resolve_dns: results.can_resolve_dns,
-            ping_hosts_performance: results.ping_hosts_performance,
-            ping_ips_performance: results.ping_ips_performance,
+            can_handshake: results.can_handshake_v4,
+            can_resolve_dns: results.can_resolve_dns_v4,
+            ping_hosts_performance: results.ping_hosts_performance_v4,
+            ping_ips_performance: results.ping_ips_performance_v4,
         }
     }
 }
@@ -257,13 +264,12 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .cloned()
             .map(|ip| ip.to_string());
         let host = hostname.or(first_ip_address);
-        let wg_performance = gateway.last_probe.as_ref().and_then(|probe| {
-            probe
-                .outcome
-                .wg
-                .as_ref()
-                .and_then(|p| Percent::naive_try_from_f64(p.ping_hosts_performance as f64).ok())
-        });
+        let wg_performance =
+            gateway.last_probe.as_ref().and_then(|probe| {
+                probe.outcome.wg.as_ref().and_then(|p| {
+                    Percent::naive_try_from_f64(p.ping_hosts_performance_v4 as f64).ok()
+                })
+            });
 
         Ok(Gateway {
             identity,

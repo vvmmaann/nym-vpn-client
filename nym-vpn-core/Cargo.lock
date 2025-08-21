@@ -5072,6 +5072,7 @@ dependencies = [
  "bs58",
  "chrono",
  "itertools 0.13.0",
+ "nym-client-core",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",

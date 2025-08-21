@@ -1,15 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::IpAddr};
-
+use crate::network_compatibility::NetworkCompatibility;
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
+use std::{collections::HashSet, fmt, net::IpAddr};
 use time::OffsetDateTime;
 
-use crate::network_compatibility::NetworkCompatibility;
+pub use nym_client_core::gateway_probe::{ProbeOutcome, Entry, Exit, WgProbeResults};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -400,56 +400,6 @@ impl Probe {
         }
         self.outcome.is_fully_operational_exit()
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProbeOutcome {
-    pub as_entry: Entry,
-    pub as_exit: Option<Exit>,
-    pub wg: Option<WgProbeResults>,
-}
-
-impl ProbeOutcome {
-    pub fn is_fully_operational_entry(&self) -> bool {
-        self.as_entry.can_connect && self.as_entry.can_route
-    }
-
-    pub fn is_fully_operational_exit(&self) -> bool {
-        self.as_entry.can_connect
-            && self.as_entry.can_route
-            && self.as_exit.as_ref().is_some_and(|exit| {
-                exit.can_connect
-                    && exit.can_route_ip_v4
-                    && exit.can_route_ip_external_v4
-                    && exit.can_route_ip_v6
-                    && exit.can_route_ip_external_v6
-            })
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entry {
-    pub can_connect: bool,
-    pub can_route: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Exit {
-    pub can_connect: bool,
-    pub can_route_ip_v4: bool,
-    pub can_route_ip_external_v4: bool,
-    pub can_route_ip_v6: bool,
-    pub can_route_ip_external_v6: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename = "wg")]
-pub struct WgProbeResults {
-    pub can_register: bool,
-    pub can_handshake: bool,
-    pub can_resolve_dns: bool,
-    pub ping_hosts_performance: f32,
-    pub ping_ips_performance: f32,
 }
 
 fn is_recently_updated(last_updated_utc: &str) -> bool {
