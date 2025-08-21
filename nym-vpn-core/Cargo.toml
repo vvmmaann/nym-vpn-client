@@ -215,29 +215,29 @@ nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "fix/retry_on_bad_seq" }
