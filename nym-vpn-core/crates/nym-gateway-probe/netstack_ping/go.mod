@@ -1,11 +1,11 @@
 module github.com/nymtech/nym-vpn-client/nym-vpn-core/crates/nym-gateway-probe/netstack_ping
 
-go 1.22.3
+go 1.24.4
 
-toolchain go1.23.1
+toolchain go1.24.4
 
 require (
-	github.com/amnezia-vpn/amneziawg-go v0.2.12
+	github.com/amnezia-vpn/amneziawg-go v0.2.13
 	golang.org/x/net v0.23.0
 )
 
