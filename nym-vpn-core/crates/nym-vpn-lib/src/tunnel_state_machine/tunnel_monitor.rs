@@ -1255,8 +1255,17 @@ impl TunnelMonitor {
             .await
             .map_err(Box::new)?;
 
-        let _ = tun_up.entry.send(TunUpSendData::Signal);
-        let _ = tun_up.exit.send(TunUpSendData::Signal);
+        let (entry_data, exit_data) = if cfg!(target_os = "ios") {
+            (
+                TunUpSendData::Signal,
+                TunUpSendData::InterfaceName(tunnel_metadata.interface.clone()),
+            )
+        } else {
+            (TunUpSendData::Signal, TunUpSendData::Signal)
+        };
+
+        let _ = tun_up.entry.send(entry_data);
+        let _ = tun_up.exit.send(exit_data);
 
         Ok(StartTunnelResult {
             tunnel_conn_data,
