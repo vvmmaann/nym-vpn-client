@@ -1257,7 +1257,7 @@ impl TunnelMonitor {
 
         let (entry_data, exit_data) = if cfg!(target_os = "ios") {
             (
-                TunUpSendData::Signal,
+                TunUpSendData::InterfaceName(tunnel_metadata.interface.clone()),
                 TunUpSendData::InterfaceName(tunnel_metadata.interface.clone()),
             )
         } else {
