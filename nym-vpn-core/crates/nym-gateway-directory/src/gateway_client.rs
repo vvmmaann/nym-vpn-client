@@ -190,12 +190,23 @@ impl ResolvedConfig {
             let mut overrides = ResolverOverrides::default();
             for api_url in api_urls.iter() {
                 if let Some(fronts) = api_url.front_hosts.as_ref() {
+                    // Resolve front domains for domain fronting
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
                             .entry(api_url.url.clone())
                             .or_default()
                             .extend(addrs);
+                    }
+                } else {
+                    // Also resolve direct URLs (without fronts) for firewall access
+                    if let Ok(parsed_url) = url::Url::parse(&api_url.url) {
+                        if let Ok(addrs) = url_to_socket_addr(&parsed_url).await {
+                            overrides
+                                .entry(api_url.url.clone())
+                                .or_default()
+                                .extend(addrs);
+                        }
                     }
                 }
             }
@@ -208,12 +219,23 @@ impl ResolvedConfig {
             let mut overrides = ResolverOverrides::default();
             for api_url in vpn_api_urls.iter() {
                 if let Some(fronts) = api_url.front_hosts.as_ref() {
+                    // Resolve front domains for domain fronting
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
                             .entry(api_url.url.clone())
                             .or_default()
                             .extend(addrs);
+                    }
+                } else {
+                    // Also resolve direct URLs (without fronts) for firewall access
+                    if let Ok(parsed_url) = url::Url::parse(&api_url.url) {
+                        if let Ok(addrs) = url_to_socket_addr(&parsed_url).await {
+                            overrides
+                                .entry(api_url.url.clone())
+                                .or_default()
+                                .extend(addrs);
+                        }
                     }
                 }
             }

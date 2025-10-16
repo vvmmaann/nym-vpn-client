@@ -23,7 +23,6 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -382,7 +381,6 @@ impl NymVpnService {
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
-        let fronted_api_url = parameters.network_env.fronted_api_url();
 
         let nym_api_url = parameters.network_env.nym_api_url();
         let nym_api_urls = parameters.network_env.nym_api_urls();
@@ -419,18 +417,86 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let validator_client =
-            build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()), None)
-                .await
-                .map_err(|err| {
-                    tracing::error!("Failed to create HTTP client: {err:?}");
-                    AccountControllerError::Initialization {
-                        reason: err.to_string(),
+        // Build validator client with ALL nym-api URLs for domain fronting fallback
+        let validator_client = {
+            let mut network_details_for_client = parameters.network_env.nym_network_details().clone();
+            
+            // Reorder URLs: frontdoors first, then direct URLs
+            // This ensures frontdoors are tried first, but direct URLs are available as fallback
+            if let Some(api_urls) = parameters.network_env.nym_api_urls() {
+                let mut fronted_urls: Vec<_> = vec![];
+                let mut direct_urls: Vec<_> = vec![];
+                
+                for url in api_urls {
+                    if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                        fronted_urls.push(url);
+                    } else {
+                        direct_urls.push(url);
                     }
+                }
+                
+                // Frontdoors first, then direct URLs for fallback
+                fronted_urls.extend(direct_urls);
+                
+                if !fronted_urls.is_empty() {
+                    network_details_for_client.nym_api_urls = Some(fronted_urls);
+                }
+            }
+            
+            let mut builder = nym_http_api_client::ClientBuilder::from_network(&network_details_for_client)
+                .map_err(|e| AccountControllerError::Initialization {
+                    reason: format!("Failed to build client from network: {e}"),
                 })?;
+            
+            // Add resolver overrides for front domains (required for domain fronting to work)
+            if let Some(api_urls) = &network_details_for_client.nym_api_urls {
+                for api_url in api_urls {
+                    if let Some(fronts) = &api_url.front_hosts {
+                        let domain = if let Ok(url) = url::Url::parse(&api_url.url) {
+                            url.host_str().unwrap_or(&api_url.url).to_string()
+                        } else {
+                            api_url.url.clone()
+                        };
+                        
+                        for front in fronts {
+                            if let Ok(addrs) = nym_vpn_api_client::str_to_socket_addr(front).await {
+                                builder = builder.resolve_to_addrs(&domain, &addrs);
+                                tracing::info!(
+                                    "Enabling Resolver override for {domain}: {}",
+                                    addrs.iter()
+                                        .map(|addr| addr.to_string())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            
+            builder = builder
+                .with_user_agent(parameters.user_agent.clone())
+                .with_retries(3);  // Enable URL rotation and domain fronting fallback
+            
+            builder.build().map_err(|e| AccountControllerError::Initialization {
+                reason: format!("Failed to build HTTP client: {e}"),
+            })?
+        };
+
+        // Extract just the URL strings for topology provider rotation
+        let nym_api_urls: Vec<url::Url> = parameters
+            .network_env
+            .nym_api_urls()
+            .unwrap_or_else(|| vec![nym_network_defaults::ApiUrl {
+                url: parameters.network_env.nym_api_url().to_string(),
+                front_hosts: None,
+            }])
+            .into_iter()
+            .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
+            .collect();
 
         let topology_provider = VpnTopologyProvider::new(
-            parameters.network_env.nym_api_url(),
+            nym_api_urls,
             validator_client,
             false,
             services_shutdown_token.child_token(),
@@ -1226,5 +1292,141 @@ impl NymVpnService {
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         self.network_statistics_enabled = enable;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use nym_network_defaults::ApiUrl;
+
+    #[test]
+    fn test_reorder_urls_frontdoors_first() {
+        // URLs should be reordered: frontdoors first, then direct
+        let api_urls = vec![
+            ApiUrl {
+                url: "https://direct-nym-api.example.com".to_string(),
+                front_hosts: None,
+            },
+            ApiUrl {
+                url: "https://fronted-nym-api.example.com".to_string(),
+                front_hosts: Some(vec!["vercel.app".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in api_urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 2, "Should keep all URLs");
+        assert_eq!(fronted_urls[0].url, "https://fronted-nym-api.example.com", "Frontdoor should be first");
+        assert_eq!(fronted_urls[1].url, "https://direct-nym-api.example.com", "Direct should be second");
+    }
+
+    #[test]
+    fn test_empty_fronts_treated_as_direct() {
+        // Empty fronts array should be treated as direct URL
+        let api_urls = vec![
+            ApiUrl {
+                url: "https://api1.nym-api.example.com".to_string(),
+                front_hosts: Some(vec![]),
+            },
+            ApiUrl {
+                url: "https://api2.nym-api.example.com".to_string(),
+                front_hosts: Some(vec!["front.nym-api.example.com".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in api_urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 2, "Should keep all URLs");
+        assert_eq!(fronted_urls[0].url, "https://api2.nym-api.example.com", "URL with fronts first");
+        assert_eq!(fronted_urls[1].url, "https://api1.nym-api.example.com", "Empty fronts second");
+    }
+
+    #[test]
+    fn test_multiple_frontdoors_then_direct() {
+        // Multiple frontdoors should all come before direct URLs
+        let api_urls = vec![
+            ApiUrl {
+                url: "https://direct.nym-api.example.com".to_string(),
+                front_hosts: None,
+            },
+            ApiUrl {
+                url: "https://frontdoor1.nym-api.example.com".to_string(),
+                front_hosts: Some(vec!["front1.example.com".to_string()]),
+            },
+            ApiUrl {
+                url: "https://frontdoor2.nym-api.example.com".to_string(),
+                front_hosts: Some(vec!["front2.nym-api.example.com".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in api_urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 3);
+        assert!(fronted_urls[0].url.contains("frontdoor1"), "First frontdoor first");
+        assert!(fronted_urls[1].url.contains("frontdoor2"), "Second frontdoor second");
+        assert!(fronted_urls[2].url.contains("direct"), "Direct URL last");
+    }
+
+    #[test]
+    fn test_all_direct_urls_preserved() {
+        // If no frontdoors exist, all direct URLs should be kept
+        let api_urls = vec![
+            ApiUrl {
+                url: "https://api1.nym-api.example.com".to_string(),
+                front_hosts: None,
+            },
+            ApiUrl {
+                url: "https://api2.nym-api.example.com".to_string(),
+                front_hosts: None,
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in api_urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 2, "All direct URLs should be kept");
     }
 }

@@ -6,7 +6,6 @@ use std::sync::Arc;
 
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -125,13 +124,79 @@ pub(super) async fn start_state_machine(
 
     let shutdown_token = CancellationToken::new();
 
-    let api_url = network_env.fronted_api_url();
-    let validator_client = build_fronted_http_client(&api_url, None, None)
-        .await
-        .map_err(|e| VpnError::HttpClient(e.to_string()))?;
+    // Build validator client with ALL nym-api URLs for domain fronting fallback
+    let validator_client = {
+        let mut network_details_for_client = network_env.nym_network_details().clone();
+        
+        // Reorder URLs: frontdoors first, then direct URLs
+        // This ensures frontdoors are tried first, but direct URLs are available as fallback
+        if let Some(api_urls) = network_env.nym_api_urls() {
+            let mut fronted_urls: Vec<_> = vec![];
+            let mut direct_urls: Vec<_> = vec![];
+            
+            for url in api_urls {
+                if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                    fronted_urls.push(url);
+                } else {
+                    direct_urls.push(url);
+                }
+            }
+            
+            // Frontdoors first, then direct URLs for fallback
+            fronted_urls.extend(direct_urls);
+            
+            if !fronted_urls.is_empty() {
+                network_details_for_client.nym_api_urls = Some(fronted_urls);
+            }
+        }
+        
+        let mut builder = nym_http_api_client::ClientBuilder::from_network(&network_details_for_client)
+            .map_err(|e| VpnError::HttpClient(format!("Failed to build client from network: {e}")))?;
+        
+        // Add resolver overrides for front domains (required for domain fronting to work)
+        if let Some(api_urls) = &network_details_for_client.nym_api_urls {
+            for api_url in api_urls {
+                if let Some(fronts) = &api_url.front_hosts {
+                    let domain = if let Ok(url) = url::Url::parse(&api_url.url) {
+                        url.host_str().unwrap_or(&api_url.url).to_string()
+                    } else {
+                        api_url.url.clone()
+                    };
+                    
+                    for front in fronts {
+                        if let Ok(addrs) = nym_vpn_api_client::str_to_socket_addr(front).await {
+                            builder = builder.resolve_to_addrs(&domain, &addrs);
+                            tracing::info!(
+                                "Enabling Resolver override for {domain}: {}",
+                                addrs.iter()
+                                    .map(|addr| addr.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        
+        builder = builder.with_retries(3);  // Enable URL rotation and domain fronting fallback
+        
+        builder.build().map_err(|e| VpnError::HttpClient(format!("Failed to build HTTP client: {e}")))?
+    };
+
+    // Extract just the URL strings for topology provider rotation
+    let nym_api_urls: Vec<url::Url> = network_env
+        .nym_api_urls()
+        .unwrap_or_else(|| vec![nym_network_defaults::ApiUrl {
+            url: network_env.nym_api_url().to_string(),
+            front_hosts: None,
+        }])
+        .into_iter()
+        .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
+        .collect();
 
     let topology_provider = VpnTopologyProvider::new(
-        network_env.nym_api_url(),
+        nym_api_urls,
         validator_client,
         false,
         shutdown_token.child_token(),
@@ -194,5 +259,116 @@ impl StateMachineHandle {
         if let Err(e) = self.event_broadcaster_handler.await {
             tracing::error!("Failed to join on event broadcaster handle: {}", e);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Test helper struct to mimic ApiUrl
+    #[derive(Clone)]
+    struct TestApiUrl {
+        url: String,
+        front_hosts: Option<Vec<String>>,
+    }
+
+    #[test]
+    fn test_url_ordering_frontdoors_first() {
+        // Test that URLs are reordered: frontdoors first, then direct
+        let mixed_urls = vec![
+            TestApiUrl {
+                url: "https://direct.nym.com/api/".to_string(),
+                front_hosts: None,
+            },
+            TestApiUrl {
+                url: "https://frontdoor.vercel.app/nym-api/".to_string(),
+                front_hosts: Some(vec!["vercel.app".to_string(), "vercel.com".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in mixed_urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 2, "Should keep all URLs");
+        assert!(fronted_urls[0].url.contains("frontdoor"), "Frontdoor should be first");
+        assert!(fronted_urls[1].url.contains("direct"), "Direct should be second");
+    }
+
+    #[test]
+    fn test_multiple_frontdoors_preserved() {
+        // Test that multiple frontdoor URLs are all kept and come first
+        let all_fronted = vec![
+            TestApiUrl {
+                url: "https://direct.nym.com/api/".to_string(),
+                front_hosts: None,
+            },
+            TestApiUrl {
+                url: "https://frontdoor1.vercel.app/api/".to_string(),
+                front_hosts: Some(vec!["vercel.app".to_string()]),
+            },
+            TestApiUrl {
+                url: "https://frontdoor2.vercel.app/api/".to_string(),
+                front_hosts: Some(vec!["vercel.com".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in all_fronted {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 3, "All URLs should be kept");
+        assert!(fronted_urls[0].url.contains("frontdoor1"), "First frontdoor first");
+        assert!(fronted_urls[1].url.contains("frontdoor2"), "Second frontdoor second");  
+        assert!(fronted_urls[2].url.contains("direct"), "Direct URL last");
+    }
+
+    #[test]
+    fn test_empty_fronts_treated_as_direct() {
+        // URLs with empty front_hosts should be treated as direct
+        let urls = vec![
+            TestApiUrl {
+                url: "https://api.nym.com/".to_string(),
+                front_hosts: Some(vec![]),
+            },
+            TestApiUrl {
+                url: "https://frontdoor.nym.com/".to_string(),
+                front_hosts: Some(vec!["cdn.nym.com".to_string()]),
+            },
+        ];
+
+        let mut fronted_urls: Vec<_> = vec![];
+        let mut direct_urls: Vec<_> = vec![];
+        
+        for url in urls {
+            if url.front_hosts.is_some() && !url.front_hosts.as_ref().unwrap().is_empty() {
+                fronted_urls.push(url);
+            } else {
+                direct_urls.push(url);
+            }
+        }
+        
+        fronted_urls.extend(direct_urls);
+
+        assert_eq!(fronted_urls.len(), 2);
+        assert!(fronted_urls[0].url.contains("frontdoor"), "Frontdoor first");
+        assert!(fronted_urls[1].url.contains("api.nym.com"), "Empty fronts treated as direct");
     }
 }

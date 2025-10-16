@@ -134,14 +134,14 @@ pub struct VpnTopologyProvider {
 
 impl VpnTopologyProvider {
     pub fn new(
-        nym_api_url: Url,
+        nym_api_urls: Vec<url::Url>,
         validator_client: nym_http_api_client::Client,
         use_network: bool,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
         let refresher = Fetcher::new(
-            vec![nym_api_url],
+            nym_api_urls,
             validator_client,
             command_rx,
             cancel_token,
