@@ -130,6 +130,7 @@ pub struct VpnTopologyProvider {
     cached_topology: Arc<RwLock<CachedNymTopology>>,
     in_progress_fetch: Arc<Mutex<Option<JoinHandle<()>>>>,
     command_tx: UnboundedSender<FetcherCommand>,
+    validator_client: nym_http_api_client::Client,
 }
 
 impl VpnTopologyProvider {
@@ -142,7 +143,7 @@ impl VpnTopologyProvider {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
         let refresher = Fetcher::new(
             nym_api_urls,
-            validator_client,
+            validator_client.clone(),
             command_rx,
             cancel_token,
         );
@@ -155,7 +156,13 @@ impl VpnTopologyProvider {
             })),
             in_progress_fetch: Arc::new(Mutex::new(None)),
             command_tx,
+            validator_client,
         }
+    }
+
+    /// Get the validator client (for passing to registration client)
+    pub fn validator_client(&self) -> nym_http_api_client::Client {
+        self.validator_client.clone()
     }
 
     /// Get topology from network asynchronously, regardless of the set value of use_network

@@ -465,25 +465,25 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
-        let rc_builder_config = RegistrationClientBuilderConfig {
+        let rc_builder_config = RegistrationClientBuilderConfig::new(
             entry_node,
             exit_node,
-            data_path: self.tunnel_parameters.nym_config.data_path.clone(),
+            self.tunnel_parameters.nym_config.data_path.clone(),
             mixnet_client_config,
-            two_hops: self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
+            self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
             user_agent,
-            custom_topology_provider: Box::new(self.custom_topology_provider.clone()),
-            network_env: self
-                .tunnel_parameters
+            Box::new(self.custom_topology_provider.clone()),
+            self.tunnel_parameters
                 .nym_config
                 .network_env
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: self.shutdown_token.child_token(),
+            self.shutdown_token.child_token(),
             #[cfg(unix)]
-            connection_fd_callback: Arc::new(connection_fd_callback),
-        };
+            Arc::new(connection_fd_callback),
+        )
+        .with_nym_api_client(self.custom_topology_provider.validator_client());
 
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
