@@ -342,4 +342,98 @@ impl TestBench {
             self.nyxd_server.register(mock).await
         }
     }
+
+    // Firewall state simulation methods - these mirror what the tunnel state machine does
+    // in production when transitioning between states. We call the real command methods
+    // that the tunnel would call.
+
+    /// Simulate tunnel entering offline/connecting state where firewall blocks everything
+    pub async fn simulate_tunnel_offline_state(&self) -> anyhow::Result<()> {
+        self.command_sender
+            .set_vpn_api_firewall_up()
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to simulate tunnel offline state: {:?}", e))?;
+        Ok(())
+    }
+
+    /// Simulate tunnel entering connected/disconnected state where firewall allows networking
+    pub async fn simulate_tunnel_connected_state(&self) -> anyhow::Result<()> {
+        self.command_sender
+            .set_vpn_api_firewall_down()
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to simulate tunnel connected state: {:?}", e))?;
+        Ok(())
+    }
+
+    /// Simulate tunnel state machine being ready (firewall down, can network)
+    pub async fn simulate_tunnel_ready(&self) -> anyhow::Result<()> {
+        self.simulate_tunnel_connected_state().await
+    }
+
+    // Sleep/wake simulation - models laptop lid close/open or suspend/resume
+
+    pub async fn simulate_sleep(&self) -> anyhow::Result<()> {
+        self.go_offline()?;
+        // Give time for connectivity change to propagate through the system
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        self.simulate_tunnel_offline_state().await?;
+        Ok(())
+    }
+
+    pub async fn simulate_wake(&self) -> anyhow::Result<()> {
+        self.go_online()?;
+        Ok(())
+    }
+
+    /// Wake with delay models real-world network stack initialization time (e.g., Windows uses 5s)
+    pub async fn simulate_wake_with_delay(&self, delay: std::time::Duration) -> anyhow::Result<()> {
+        self.go_online()?;
+        tokio::time::sleep(delay).await;
+        Ok(())
+    }
+
+    // DHCP simulation - models lease expiration/renewal that happens when switching networks
+    // or when DHCP lease times out (typically every few hours)
+
+    pub async fn simulate_dhcp_lease_expiration(&self) -> anyhow::Result<()> {
+        self.go_offline()?;
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        Ok(())
+    }
+
+    pub async fn simulate_dhcp_renewal(&self) -> anyhow::Result<()> {
+        self.go_online()?;
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        Ok(())
+    }
+
+    /// Simulate a specific tunnel state
+    pub async fn simulate_tunnel_state(
+        &self,
+        state: crate::paths::firewall_sync::TunnelState,
+    ) -> anyhow::Result<()> {
+        match state {
+            crate::paths::firewall_sync::TunnelState::Connecting => {
+                self.simulate_tunnel_offline_state().await?;
+            }
+            crate::paths::firewall_sync::TunnelState::Connected => {
+                self.simulate_tunnel_connected_state().await?;
+            }
+            crate::paths::firewall_sync::TunnelState::Offline => {
+                self.simulate_tunnel_offline_state().await?;
+            }
+            crate::paths::firewall_sync::TunnelState::Disconnected => {
+                self.simulate_tunnel_connected_state().await?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Get the number of failed network attempts (for testing)
+    /// This is a placeholder - in a real implementation, this would track actual network attempts
+    pub async fn get_failed_network_attempts(&self) -> u32 {
+        // For now, return 0 as we don't have a way to track this in the mock
+        // In a real implementation, we'd track this in the TestBench state
+        0
+    }
 }

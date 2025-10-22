@@ -6,6 +6,11 @@ use crate::common::{TestBench, account_summary::*, endpoints, nyxd_endpoints};
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
 
+pub mod benchmarks;
+pub mod dhcp_scenarios;
+pub mod firewall_sync;
+pub mod firewall_validation;
+
 /// How to use these tests :
 ///
 /// 1. Create a TestBench object with TestBench::new.
