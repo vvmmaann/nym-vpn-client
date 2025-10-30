@@ -268,6 +268,7 @@ jobs:
     ############################################################# MACOS 
 
       - name: Archive macOS
+        id: archive-macos
         working-directory: nym-vpn-apple
         env:
           MACOSX_DEPLOYMENT_TARGET: 13.0
@@ -275,32 +276,74 @@ jobs:
           DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
-
-          mkdir -p "$PWD/builds"
-
+          
+          ARCHIVE_PATH="$PWD/build/NymVPN.xcarchive"
+          EXPORT_PATH="$PWD/builds"
+          EXPORT_PLIST="$PWD/export_options.plist"
+          
+          mkdir -p "$EXPORT_PATH"
+          
+          # Create export options plist
+          cat > "$EXPORT_PLIST" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>developer-id</string>
+            <key>teamID</key><string>${DEVELOPMENT_TEAM}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Developer ID Application</string>
+            <key>stripSwiftSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          
           echo "🚀 Archiving macOS app..."
-          xcode-project build-ipa \
-            --workspace "NymVPN.xcworkspace" \
-            --scheme "NymVPNDaemon" \
-            --config "Release" \
-            --archive-xcargs "CODE_SIGN_IDENTITY[sdk=macosx*]=\"${DEVELOPER_ID_APP_IDENTITY}\" DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp PROVISIONING_PROFILE=\"\" PROVISIONING_PROFILE_SPECIFIER=\"\"" \
-            --export-options-plist "$PWD/NymVPNDaemon/Resources/developer_id_export.plist" \
-            --clean \
-            --ipa-directory "$PWD/builds" \
-            --archive-directory "$PWD/builds" \
-            --verbose
+          xcodebuild archive \
+            -workspace "NymVPN.xcworkspace" \
+            -scheme "NymVPNDaemon" \
+            -configuration "Release" \
+            -archivePath "$ARCHIVE_PATH" \
+            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            | xcpretty
+          
+          # Verify archive was created
+          if [[ ! -d "$ARCHIVE_PATH" ]]; then
+            echo "❌ Archive not created at $ARCHIVE_PATH"
+            exit 1
+          fi
+          
+          echo "📦 Exporting macOS app..."
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_PLIST" \
+            | xcpretty
+          
+          # Find the exported app
+          APP_PATH="$(find "$EXPORT_PATH" -maxdepth 1 -type d -name 'NymVPN*.app' -print -quit)"
+          if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
+            echo "❌ Could not find exported app in $EXPORT_PATH"
+            ls -la "$EXPORT_PATH"
+            exit 1
+          fi
+          
+          echo "✅ App exported to: $APP_PATH"
+          echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create DMG
         id: make-dmg
         working-directory: nym-vpn-apple
         run: |
           set -euo pipefail
-
-          APP_DIR="$PWD/builds"
-          APP_PATH="$(find "$APP_DIR" -maxdepth 2 -type d -name 'NymVPN*.app' -print -quit || true)"
-
+          
+          APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
+          
           if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
-            echo "❌ Could not locate NymVPN*.app in $APP_DIR" >&2
+            echo "❌ Invalid app path: $APP_PATH" >&2
             exit 1
           fi
           echo "✅ Using app: $APP_PATH"
@@ -340,6 +383,20 @@ jobs:
 
           echo "dmg_path=$DMG_PATH" >> "$GITHUB_OUTPUT"
           echo "✅ DMG created at: $DMG_PATH"
+
+      - name: Write App Store Connect API key
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        id: asc-key
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          KEY_DIR="$HOME/private_keys"
+          mkdir -p "$KEY_DIR"
+          KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+          echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize DMG (Developer ID)
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -381,8 +438,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
-          path: |
-            ${{ steps.make-dmg.outputs.dmg_path }}
+          path: ${{ steps.notarize-dmg.outputs.dmg_path || steps.make-dmg.outputs.dmg_path }}
           if-no-files-found: error
           retention-days: 1
 
