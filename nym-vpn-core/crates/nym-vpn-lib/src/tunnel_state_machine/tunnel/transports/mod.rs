@@ -416,44 +416,24 @@ pub async fn transport_conn(
     let quic_client_config = QuicClientConfig::try_from(client_crypto)
         .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
 
-    // Performance improvements with randomized parameters (download speed, NAT timeouts)
     let mut transport_config = quinn::TransportConfig::default();
 
-    // Generate all random values upfront (ThreadRng is not Send)
-    let (stream_window_mb, conn_window_mb, keepalive_secs, idle_timeout_secs, max_streams) = {
+    let (keepalive_secs, idle_timeout_secs) = {
         let mut rng = rand::thread_rng();
-        (
-            rng.gen_range(3..=5),
-            rng.gen_range(6..=10),
-            rng.gen_range(8..=12),
-            rng.gen_range(50..=70),
-            rng.gen_range(80..=120) as u32,
-        )
+        (rng.gen_range(8..=12), rng.gen_range(50..=70))
     };
 
-    // Randomise windows (3-5 MB stream, 6-10 MB connection) for performance
-    let stream_window = quinn::VarInt::from_u64((stream_window_mb * 1024 * 1024) as u64)
-        .map_err(|e| TransportError::config_err(format!("invalid stream receive window: {e}")))?;
-    transport_config.stream_receive_window(stream_window);
-
-    let conn_window = quinn::VarInt::from_u64((conn_window_mb * 1024 * 1024) as u64)
-        .map_err(|e| TransportError::config_err(format!("invalid receive window: {e}")))?;
-    transport_config.receive_window(conn_window);
-    transport_config.send_window((conn_window_mb * 1024 * 1024) as u64);
-
-    // Randomise keepalive (8-12s) to prevent NAT timeout
     transport_config.keep_alive_interval(Some(Duration::from_secs(keepalive_secs)));
-
-    // Randomise idle timeout (50-70s) maintaining 5-6x keepalive ratio
     transport_config.max_idle_timeout(Some(
         Duration::from_secs(idle_timeout_secs)
             .try_into()
             .map_err(|e| TransportError::config_err(format!("invalid idle timeout: {e}")))?,
     ));
 
-    // Randomise stream limits (80-120)
-    transport_config.max_concurrent_bidi_streams(max_streams.into());
-    transport_config.max_concurrent_uni_streams(0u32.into());
+    debug!(
+        "QUIC config: keepalive={}s, idle={}s",
+        keepalive_secs, idle_timeout_secs
+    );
 
     let mut client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
     client_config.transport_config(Arc::new(transport_config));
