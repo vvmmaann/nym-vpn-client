@@ -198,40 +198,40 @@ nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "fig-release", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "fig-release" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "jmwample/dns-min-tll" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
