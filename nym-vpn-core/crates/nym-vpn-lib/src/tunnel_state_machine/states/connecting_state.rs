@@ -291,7 +291,7 @@ impl ConnectingState {
                 .account_command_tx
                 .set_resolver_overrides(Some(
                     resolved_gateway_config
-                        .nym_vpn_api_resolver_overrides
+                        .nym_vpn_api_resolver_overrides()
                         .clone(),
                 ))
                 .await
@@ -315,7 +315,7 @@ impl ConnectingState {
                 .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
                     Box::new(
                         resolved_gateway_config
-                            .nym_vpn_api_resolver_overrides
+                            .nym_vpn_api_resolver_overrides()
                             .clone(),
                     ),
                 )))

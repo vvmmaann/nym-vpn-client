@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt};
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_connection_monitor::{
@@ -31,7 +31,7 @@ use std::{
 use std::{os::fd::RawFd, sync::Arc};
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nix::sys::socket::{sockopt::Mark, SetSockOpt};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -54,8 +54,8 @@ use super::tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
 use super::{
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
-    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
+    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone}, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
+    TunnelSettings,
 };
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_vpn_lib_types::{
@@ -73,19 +73,19 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, VpnTopologyProvider,
-    bandwidth_controller::BandwidthController,
-    tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
-        tunnel::{
+    bandwidth_controller::BandwidthController, tunnel_state_machine::{
+        account, ipv6_availability, tunnel::{
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
+                connected_tunnel::ConnectedTunnel, ConnectionData as WgConnectionData, MetadataEvent,
+                MetadataReceiver,
             },
-        },
-    },
+        }, TunnelConstants,
+        WireguardMultihopMode,
+    }, VpnTopologyProvider,
+    DEFAULT_MIN_GATEWAY_PERFORMANCE,
+    DEFAULT_MIN_MIXNODE_PERFORMANCE,
 };
 
 /// Default MTU for mixnet tun device.
@@ -361,17 +361,15 @@ impl TunnelMonitor {
         // TODO: user_agent must not be a part of tunnel_settings
 
         let resolver_overrides = Some(
-            &self
-                .tunnel_parameters
+            self.tunnel_parameters
                 .resolved_gateway_config
-                .nym_api_resolver_overrides,
+                .nym_api_resolver_overrides(),
         );
 
         let vpn_resolver_overrides = Some(
-            &self
-                .tunnel_parameters
+            self.tunnel_parameters
                 .resolved_gateway_config
-                .nym_vpn_api_resolver_overrides,
+                .nym_vpn_api_resolver_overrides(),
         );
 
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
@@ -465,7 +463,7 @@ impl TunnelMonitor {
                 Some(
                     self.tunnel_parameters
                         .resolved_gateway_config
-                        .nym_api_resolver_overrides
+                        .nym_api_resolver_overrides()
                         .clone(),
                 ),
             )
@@ -616,7 +614,7 @@ impl TunnelMonitor {
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
-        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (bridge_close_tx, mut bridge_close_rx) = mpsc::unbounded_channel();
 
         // todo: refactor
         let (
@@ -1217,7 +1215,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1434,7 +1432,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();

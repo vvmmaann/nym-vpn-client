@@ -208,6 +208,7 @@ pub enum WireguardMultihopMode {
     Netstack,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for WireguardMultihopMode {
     fn default() -> Self {
         #[cfg(any(target_os = "ios", target_os = "android"))]

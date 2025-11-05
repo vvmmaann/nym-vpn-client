@@ -12,18 +12,18 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ResolverOverrides, api_urls_to_urls, fronted_http_client,
-    types::{GatewayMinPerformance, Percent},
+    api_urls_to_urls, fronted_http_client, types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
+    ResolverOverrides,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
 use url::Url;
 
 use crate::{
-    Error, NymNode,
-    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
-    error::Result,
+    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList}, error::Result,
+    Error,
+    NymNode,
 };
 
 #[derive(Clone, Debug)]
@@ -109,9 +109,9 @@ impl fmt::Display for Config {
 
 #[derive(Debug, Clone)]
 pub struct ResolvedConfig {
-    pub nyxd_socket_addrs: Vec<SocketAddr>,
-    pub nym_api_resolver_overrides: ResolverOverrides,
-    pub nym_vpn_api_resolver_overrides: ResolverOverrides,
+    nyxd_socket_addrs: Vec<SocketAddr>,
+    nym_api_resolver_overrides: ResolverOverrides,
+    nym_vpn_api_resolver_overrides: ResolverOverrides,
 }
 
 impl ResolvedConfig {
@@ -136,6 +136,14 @@ impl ResolvedConfig {
             || !self.nym_vpn_api_resolver_overrides.is_empty()
     }
 
+    pub fn nym_api_resolver_overrides(&self) -> &ResolverOverrides {
+        &self.nym_api_resolver_overrides
+    }
+
+    pub fn nym_vpn_api_resolver_overrides(&self) -> &ResolverOverrides {
+        &self.nym_vpn_api_resolver_overrides
+    }
+
     pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
         let mut socket_addrs = vec![];
         socket_addrs.extend(self.nyxd_socket_addrs.iter());
@@ -149,9 +157,6 @@ impl ResolvedConfig {
 pub struct GatewayClient {
     api_client: nym_http_api_client::Client,
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
-
-    #[allow(unused)]
-    nyxd_url: Url,
 
     min_gateway_performance: Option<GatewayMinPerformance>,
     config: Config,
@@ -188,7 +193,6 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             vpn_api_client,
-            nyxd_url: config.nyxd_url.clone(),
             min_gateway_performance: config.min_gateway_performance,
             config,
         })
@@ -219,7 +223,6 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             vpn_api_client,
-            nyxd_url: config.nyxd_url.clone(),
             min_gateway_performance: config.min_gateway_performance,
             config,
         })
@@ -433,7 +436,7 @@ impl GatewayClient {
 
         let raw_gateways_vec = raw_gateways.into_inner();
 
-        tracing::debug!(
+        debug!(
             "VPN-API returned {} raw gateways for {:?}",
             raw_gateways_vec.len(),
             gw_type
@@ -448,7 +451,7 @@ impl GatewayClient {
             })
             .collect();
 
-        tracing::debug!(
+        debug!(
             "Successfully parsed {} gateways for {:?}",
             gateways.len(),
             gw_type
