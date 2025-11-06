@@ -60,21 +60,9 @@ impl DisconnectedState {
         }
     }
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            trace_err_chain!(error, "Failed to reset DNS");
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    async fn reset_dns(shared_state: &mut SharedState) {
-        use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-
-        // On macOS, configure only the local DNS resolver
-        if *LOCAL_DNS_RESOLVER {
-            shared_state.filtering_resolver.disable_forward().await;
-        } else if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
         }
     }
