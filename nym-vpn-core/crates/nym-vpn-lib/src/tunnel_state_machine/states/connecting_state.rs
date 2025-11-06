@@ -39,6 +39,7 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
+use nym_vpn_api_client::probe_connectivity;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
@@ -467,6 +468,19 @@ impl TunnelStateHandler for ConnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = &mut self.reconnect_delay_fut => {
+                // On retry attempts, verify network readiness before DNS resolution.
+                if self.retry_attempt > 0 {
+                    tracing::info!("Verifying network readiness before DNS resolution");
+
+                    if !probe_connectivity().await {
+                        tracing::warn!("Connectivity probe failed - network likely not ready, but proceeding with DNS resolution anyway");
+                        // Proceed anyway - if DNS fails, normal retry mechanism handles it
+                        // with proper exponential backoff. The probe is advisory, not blocking.
+                    } else {
+                        tracing::info!("Connectivity probe succeeded, proceeding with DNS resolution");
+                    }
+                }
+
                 let gateway_config = shared_state.nym_config.gateway_config.clone();
 
                 self.resolve_api_addrs_fut = async move {

@@ -27,12 +27,9 @@ impl ResolverOverrides {
         let urls_to_resolve = urls
             .iter()
             .flat_map(|url| {
-                [url.inner_url().clone()].into_iter().chain(
-                    url.fronts()
-                        .unwrap_or_default()
-                        .iter()
-                        .map(|front| front.clone()),
-                )
+                [url.inner_url().clone()]
+                    .into_iter()
+                    .chain(url.fronts().unwrap_or_default().iter().cloned())
             })
             .collect::<HashSet<_>>();
 

@@ -11,6 +11,12 @@ use crate::error::{Result, VpnApiClientError};
 // be generous with the resolution timeout
 const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Quick connectivity probe timeout - used to verify DNS is actually working
+const CONNECTIVITY_PROBE_TIMEOUT: Duration = Duration::from_secs(2);
+
+/// Probe targets for connectivity verification.
+const PROBE_TARGETS: &[&str] = &["dns.quad9.net", "one.one.one.one"];
+
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
     let mut resolver = HickoryDnsResolver::default();
@@ -118,6 +124,34 @@ pub async fn domain_to_socket_addr(
     } else {
         str_to_socket_addr(&format!("https://{domain}"), limit).await
     }
+}
+
+/// Attempts to resolve well-known DNS provider domains to warm up hickory's connection pool.
+pub async fn probe_connectivity() -> bool {
+    let mut resolver = HickoryDnsResolver::default();
+    // Disable system resolver because it's typically blocked by firewall anyway.
+    resolver.disable_system_fallback();
+
+    for target in PROBE_TARGETS {
+        match tokio::time::timeout(CONNECTIVITY_PROBE_TIMEOUT, resolver.resolve_str(target)).await {
+            Ok(Ok(_)) => {
+                tracing::debug!("Connectivity probe succeeded with target: {}", target);
+                return true;
+            }
+            Ok(Err(e)) => {
+                tracing::debug!("Connectivity probe failed for {}: {}", target, e);
+            }
+            Err(_) => {
+                tracing::debug!("Connectivity probe timeout for {}", target);
+            }
+        }
+    }
+
+    tracing::warn!(
+        "All connectivity probe targets failed (tried {} targets)",
+        PROBE_TARGETS.len()
+    );
+    false
 }
 
 #[cfg(test)]
