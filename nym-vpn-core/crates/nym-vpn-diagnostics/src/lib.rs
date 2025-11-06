@@ -544,26 +544,26 @@ impl VpnDiagnostics {
 
     async fn resolve_domains_v4(&self, domains: &[&str]) -> Result<Vec<Ipv4Addr>, String> {
         use hickory_resolver::{
-            TokioResolver, name_server::TokioConnectionProvider, system_conf::read_system_conf,
+            TokioResolver,
+            config::{
+                LookupIpStrategy, NameServerConfigGroup, ResolverConfig, ServerOrderingStrategy,
+            },
+            name_server::TokioConnectionProvider,
         };
 
-        // Use system DNS configuration to respect the VPN's local DNS forwarder when active
-        let (config, opts) = match read_system_conf() {
-            Ok((cfg, opts)) => {
-                tracing::debug!(
-                    "Read system DNS config: {} nameservers",
-                    cfg.name_servers().len()
-                );
-                (cfg, opts)
-            }
-            Err(e) => {
-                return Err(format!("Failed to read system DNS config: {}", e));
-            }
-        };
+        // Use explicit DNS configuration (Quad9 + Cloudflare) to match production VPN behavior.
+        // Do NOT use system resolver - the VPN code never relies on it.
+        let mut name_servers = NameServerConfigGroup::quad9_tls();
+        name_servers.merge(NameServerConfigGroup::quad9_https());
+        name_servers.merge(NameServerConfigGroup::cloudflare_tls());
+        name_servers.merge(NameServerConfigGroup::cloudflare_https());
 
+        let config = ResolverConfig::from_parts(None, Vec::new(), name_servers);
         let mut builder =
             TokioResolver::builder_with_config(config, TokioConnectionProvider::default());
-        *builder.options_mut() = opts;
+
+        builder.options_mut().ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
+        builder.options_mut().server_ordering_strategy = ServerOrderingStrategy::RoundRobin;
         let resolver = builder.build();
 
         let mut ipv4_addrs = Vec::new();
@@ -590,26 +590,26 @@ impl VpnDiagnostics {
 
     async fn resolve_domains_v6(&self, domains: &[&str]) -> Result<Vec<Ipv6Addr>, String> {
         use hickory_resolver::{
-            TokioResolver, name_server::TokioConnectionProvider, system_conf::read_system_conf,
+            TokioResolver,
+            config::{
+                LookupIpStrategy, NameServerConfigGroup, ResolverConfig, ServerOrderingStrategy,
+            },
+            name_server::TokioConnectionProvider,
         };
 
-        // Use system DNS configuration to respect the VPN's local DNS forwarder when active
-        let (config, opts) = match read_system_conf() {
-            Ok((cfg, opts)) => {
-                tracing::debug!(
-                    "Read system DNS config: {} nameservers",
-                    cfg.name_servers().len()
-                );
-                (cfg, opts)
-            }
-            Err(e) => {
-                return Err(format!("Failed to read system DNS config: {}", e));
-            }
-        };
+        // Use explicit DNS configuration (Quad9 + Cloudflare) to match production VPN behavior.
+        // Do NOT use system resolver - the VPN code never relies on it.
+        let mut name_servers = NameServerConfigGroup::quad9_tls();
+        name_servers.merge(NameServerConfigGroup::quad9_https());
+        name_servers.merge(NameServerConfigGroup::cloudflare_tls());
+        name_servers.merge(NameServerConfigGroup::cloudflare_https());
 
+        let config = ResolverConfig::from_parts(None, Vec::new(), name_servers);
         let mut builder =
             TokioResolver::builder_with_config(config, TokioConnectionProvider::default());
-        *builder.options_mut() = opts;
+
+        builder.options_mut().ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
+        builder.options_mut().server_ordering_strategy = ServerOrderingStrategy::RoundRobin;
         let resolver = builder.build();
 
         let mut ipv6_addrs = Vec::new();
