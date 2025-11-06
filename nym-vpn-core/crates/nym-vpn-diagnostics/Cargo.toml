@@ -1,0 +1,42 @@
+[package]
+name = "nym-vpn-diagnostics"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "vpn-diagnostics"
+path = "src/bin/vpn-diagnostics.rs"
+
+[dependencies]
+async-trait.workspace = true
+chrono.workspace = true
+clap = { workspace = true, features = ["derive"] }
+futures.workspace = true
+hickory-resolver = { workspace = true, features = [
+    "tokio",
+    "tls-ring",
+    "https-ring",
+] }
+serde.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = [
+    "net",
+    "time",
+    "rt-multi-thread",
+    "macros",
+] }
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tonic.workspace = true
+tower.workspace = true
+nym-vpn-proto = { path = "../nym-vpn-proto" }
+nym-ipc = { path = "../nym-ipc" }
+

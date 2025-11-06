@@ -5339,6 +5339,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-diagnostics"
+version = "1.19.0-beta"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "clap",
+ "futures",
+ "hickory-resolver",
+ "nym-ipc",
+ "nym-vpn-proto",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "nym-vpn-lib"
 version = "1.19.0-beta"
 dependencies = [
