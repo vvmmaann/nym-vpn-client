@@ -201,40 +201,40 @@ nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "dns-debug" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "dns-debug-fig" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
