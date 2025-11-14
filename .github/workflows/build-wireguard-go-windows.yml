@@ -7,15 +7,21 @@ on:
       - ".github/workflows/build-wireguard-go-windows.yml"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      runner:
+        description: 'Runner to use for the job'
+        required: false
+        type: string
+        default: 'custom-windows-11'
 
 env:
   CARGO_TERM_COLOR: always
-  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  AGENT_ISSELFHOSTED: ${{ inputs.runner == 'windows-latest' && '0' || '1' }} # https://github.com/actions/setup-go/issues/432
 
 jobs:
   build:
     if: github.actor != 'dependabot[bot]'
-    runs-on: "custom-windows-11"
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - name: Checkout repo

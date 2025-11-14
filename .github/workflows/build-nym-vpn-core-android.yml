@@ -6,6 +6,12 @@ on:
       - ".github/workflows/build-nym-vpn-core-android.yml"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      runner:
+        description: 'Runner to use for the job'
+        required: false
+        type: string
+        default: 'arc-linux-latest'
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-android.outputs.RUST_VERSION }}
@@ -17,11 +23,13 @@ env:
 jobs:
   build-wireguard-go-android:
     uses: ./.github/workflows/build-wireguard-go-android.yml
+    with:
+      runner: ${{ inputs.runner }}
 
   build-android:
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-android
-    runs-on: arc-linux-latest
+    runs-on: ${{ inputs.runner }}
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

@@ -32,9 +32,13 @@ jobs:
 
   build-nym-vpn-core-android:
     uses: ./.github/workflows/build-nym-vpn-core-android.yml
+    with:
+      runner: ${{ startsWith(github.ref_name, 'release') && 'ubuntu-22.04' || 'arc-linux-latest' }}
 
   build-nym-vpn-core-windows:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+    with:
+      runner: ${{ startsWith(github.ref_name, 'release') && 'windows-latest' || 'custom-windows-11' }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -52,7 +56,7 @@ jobs:
       - build-nym-vpn-core-android
       - build-nym-vpn-core-windows
       - generate-build-info-core
-    runs-on: arc-linux-latest
+    runs-on: ${{ startsWith(github.ref_name, 'release') && 'ubuntu-22.04' || 'arc-linux-latest' }}
     permissions:
       contents: write
     outputs:

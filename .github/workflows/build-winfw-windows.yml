@@ -2,6 +2,12 @@ name: build-winfw-windows
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      runner:
+        description: 'Runner to use for the job'
+        required: false
+        type: string
+        default: 'custom-windows-11'
 
 env:
   CARGO_TERM_COLOR: always
@@ -10,7 +16,7 @@ env:
 
 jobs:
   build:
-    runs-on: "custom-windows-11"
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - name: Cleanup working directory

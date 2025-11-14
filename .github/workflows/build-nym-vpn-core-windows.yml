@@ -6,6 +6,12 @@ on:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      runner:
+        description: 'Runner to use for the job'
+        required: false
+        type: string
+        default: 'custom-windows-11'
     secrets:
       VPND_SENTRY_DSN:
         required: true
@@ -25,14 +31,18 @@ env:
 jobs:
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
+    with:
+      runner: ${{ inputs.runner }}
 
   build-winfw-windows:
     uses: ./.github/workflows/build-winfw-windows.yml
+    with:
+      runner: ${{ inputs.runner }}
 
   build-windows:
     if: github.actor != 'dependabot[bot]'
     needs: [build-wireguard-go-windows, build-winfw-windows]
-    runs-on: custom-windows-11
+    runs-on: ${{ inputs.runner }}
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
