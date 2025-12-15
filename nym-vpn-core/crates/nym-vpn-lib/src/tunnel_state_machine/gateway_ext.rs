@@ -9,7 +9,9 @@ pub trait GatewayExt {
 }
 
 impl GatewayExt for nym_gateway_directory::Gateway {
-    fn endpoints(&self) -> Vec<SocketAddr> {
+    /// Always returns the socket addresses for ws. If a WSS port is defined those
+    /// will be returned as well so both are usable.
+    fn endpoints(&self) -> Vec<SocketAddr> { 
         let mut ports: Vec<u16> = vec![self.entry_info.ws_port];
         if let Some(wss_port) = self.entry_info.wss_port {
             ports.push(wss_port);
