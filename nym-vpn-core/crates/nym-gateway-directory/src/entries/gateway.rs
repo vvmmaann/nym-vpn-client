@@ -3,10 +3,10 @@
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
-use nym_topology::{NodeId, RoutingNode};
+use nym_topology::{EntryDetails, NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
 use nym_vpn_api_client::{
-    response::{BridgeInformation, BridgeParameters},
+    response::{BridgeInformation, BridgeParameters, EntryInformation},
     types::Percent,
 };
 use rand::seq::IteratorRandom;
@@ -25,6 +25,9 @@ use crate::{
 pub type NymNode = Gateway;
 
 pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
+
+/// Default websocket port used as a fallback
+const DEFAULT_WS_PORT: u16 = 80;
 
 #[derive(Clone, Debug, TypedBuilder)]
 pub struct Gateway {
@@ -47,12 +50,8 @@ pub struct Gateway {
     pub last_probe: Option<Probe>,
     #[builder(default=vec![])]
     pub ips: Vec<IpAddr>,
-    #[builder(default)]
-    pub host: Option<String>,
-    #[builder(default)]
-    pub clients_ws_port: Option<u16>,
-    #[builder(default)]
-    pub clients_wss_port: Option<u16>,
+    #[builder(default=EntryInformation { hostname: None, ws_port: DEFAULT_WS_PORT, wss_port: None })]
+    pub entry_info: EntryInformation,
     // todo: remove since it's unused?
     #[builder(default)]
     pub mixnet_performance: Option<Percent>,
@@ -117,10 +116,15 @@ impl Gateway {
         ))
         .map_err(|_| Error::MalformedGateway)?;
 
-        let host = gateway.ws_entry_address(false);
-        let entry_info = &gateway.entry;
-        let clients_ws_port = entry_info.as_ref().map(|g| g.clients_ws_port);
-        let clients_wss_port = entry_info.as_ref().and_then(|g| g.clients_wss_port);
+        let entry_info = EntryInformation {
+            ws_port: gateway
+                .entry
+                .as_ref()
+                .map(|g| g.clients_ws_port)
+                .unwrap_or(DEFAULT_WS_PORT),
+            wss_port: gateway.entry.as_ref().and_then(|g| g.clients_wss_port),
+            hostname: gateway.entry.as_ref().and_then(|g| g.hostname.clone()),
+        };
         let ips = node_description.description.host_information.ip_address;
         Ok(Gateway {
             identity,
@@ -133,9 +137,7 @@ impl Gateway {
             bridge_params: None,
             last_probe: None,
             ips,
-            host,
-            clients_ws_port,
-            clients_wss_port,
+            entry_info,
             mixnet_performance: None,
             performance: None,
             version,
@@ -198,30 +200,12 @@ impl Gateway {
         }
     }
 
-    pub fn host(&self) -> Option<&String> {
-        self.host.as_ref()
-    }
-
     pub fn lookup_ip(&self) -> Option<IpAddr> {
         self.ips.first().copied()
     }
 
     pub fn split_ips(&self) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {
         helpers::split_ips(self.ips.clone())
-    }
-
-    pub fn clients_address_no_tls(&self) -> Option<String> {
-        match (&self.host, &self.clients_ws_port) {
-            (Some(host), Some(port)) => Some(format!("ws://{host}:{port}")),
-            _ => None,
-        }
-    }
-
-    pub fn clients_address_tls(&self) -> Option<String> {
-        match (&self.host, &self.clients_wss_port) {
-            (Some(host), Some(port)) => Some(format!("wss://{host}:{port}")),
-            _ => None,
-        }
     }
 
     pub fn meets_score(&self, gw_type: Option<GatewayType>, min_score: ScoreValue) -> bool {
@@ -534,13 +518,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .authenticator
             .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok());
 
-        let hostname = gateway.entry.hostname;
-        let first_ip_address = gateway
-            .ip_addresses
-            .first()
-            .cloned()
-            .map(|ip| ip.to_string());
-        let host = hostname.or(first_ip_address);
+        let entry_info = gateway.entry.clone();
 
         Ok(Gateway {
             identity,
@@ -553,9 +531,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             bridge_params: gateway.bridges,
             last_probe: gateway.last_probe.map(Probe::from),
             ips: gateway.ip_addresses,
-            host,
-            clients_ws_port: Some(gateway.entry.ws_port),
-            clients_wss_port: gateway.entry.wss_port,
+            entry_info,
             mixnet_performance: Some(gateway.performance),
             performance: gateway.performance_v2.map(Performance::from),
             version: gateway.build_information.map(|info| info.build_version),
@@ -673,18 +649,12 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
         self.identity()
     }
 
-    fn clients_address(&self, _prefer_ipv6: bool) -> Option<String> {
-        // This is a bit of a sharp edge, but temporary until we can remove Option from host
-        // and tls port when we add these to the vpn API endpoints.
-        Some(
-            self.clients_address_tls()
-                .or(self.clients_address_no_tls())
-                .unwrap_or("ws://".to_string()),
-        )
+    fn endpoint_details(&self) -> std::option::Option<EntryDetails> {
+        todo!()
     }
 
     fn is_wss(&self) -> bool {
-        self.clients_address_tls().is_some()
+        self.entry_info.hostname.is_some() && self.entry_info.wss_port.is_some()
     }
 }
 
@@ -1149,9 +1119,11 @@ mod tests {
                     bridge_params: None,
                     last_probe: None,
                     ips: Vec::new(),
-                    host: None,
-                    clients_ws_port: None,
-                    clients_wss_port: None,
+                    entry_info: EntryInformation {
+                        hostname: None,
+                        ws_port: DEFAULT_WS_PORT,
+                        wss_port: None,
+                    },
                     mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
                     performance: Some(Performance {
                         last_updated_utc: "2024-01-01T00:00:00Z".to_string(),

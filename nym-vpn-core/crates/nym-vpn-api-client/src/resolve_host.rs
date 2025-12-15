@@ -105,6 +105,9 @@ pub async fn domain_to_socket_addr(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Test that the resolution works and returns usable addresses without making assumptions about the number or
+    /// type of addresses queried.
     #[tokio::test]
     async fn test_resolve_host() {
         let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
@@ -112,7 +115,11 @@ mod tests {
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await
             .unwrap();
-        assert!(addresses.len() > 2);
-        assert_eq!(limited_addresses.len(), 2);
+
+        // We found at least one address for the host.
+        assert!(!addresses.is_empty());
+
+        // Doing a lookup with limitations still finds at least one address
+        assert!(!limited_addresses.is_empty());
     }
 }

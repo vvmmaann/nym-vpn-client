@@ -136,6 +136,8 @@ impl EntryPoint {
 
 #[cfg(test)]
 mod tests {
+    use nym_vpn_api_client::response::EntryInformation;
+
     use super::*;
     use crate::{Gateway, GatewayList, GatewayType, ScoreValue};
 
@@ -154,9 +156,11 @@ mod tests {
             bridge_params: None,
             last_probe: None,
             ips: Vec::new(),
-            host: None,
-            clients_ws_port: None,
-            clients_wss_port: None,
+            entry_info: EntryInformation {
+                hostname: None,
+                ws_port: 9000,
+                wss_port: None
+            },
             mixnet_performance: None,
             performance: Some(crate::Performance {
                 last_updated_utc: "2025-10-22T00:00:00Z".to_string(),

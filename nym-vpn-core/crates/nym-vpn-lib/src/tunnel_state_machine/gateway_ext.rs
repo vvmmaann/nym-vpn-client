@@ -3,9 +3,6 @@
 
 use std::net::SocketAddr;
 
-/// Default websocket port used as a fallback
-const DEFAULT_WS_PORT: u16 = 80;
-
 pub trait GatewayExt {
     /// Returns a list of all endpoints with WSS port if available, otherwise WS port.
     fn endpoints(&self) -> Vec<SocketAddr>;
@@ -13,14 +10,9 @@ pub trait GatewayExt {
 
 impl GatewayExt for nym_gateway_directory::Gateway {
     fn endpoints(&self) -> Vec<SocketAddr> {
-        let mut ports: Vec<u16> = self
-            .clients_ws_port
-            .into_iter()
-            .chain(self.clients_wss_port)
-            .collect();
-        // if neither WS nor WSS is there, default port
-        if ports.is_empty() {
-            ports = vec![DEFAULT_WS_PORT];
+        let mut ports: Vec<u16> = vec![self.entry_info.ws_port];
+        if let Some(wss_port) = self.entry_info.wss_port {
+            ports.push(wss_port);
         }
 
         itertools::iproduct!(self.ips.clone(), ports)
