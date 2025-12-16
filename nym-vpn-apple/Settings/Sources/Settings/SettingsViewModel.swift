@@ -374,19 +374,19 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.proxy.title".localizedString,
-                subtitle: "settings.proxy.subtitle".localizedString,
-                imageName: "proxy",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToProxy()
-                    }
-                }
-            )
-        )
+//        viewModels.append(
+//            SettingsListItemViewModel(
+//                accessory: .arrow,
+//                title: "settings.proxy.title".localizedString,
+//                subtitle: "settings.proxy.subtitle".localizedString,
+//                imageName: "proxy",
+//                action: { [weak self] in
+//                    Task { @MainActor in
+//                        self?.navigateToProxy()
+//                    }
+//                }
+//            )
+//        )
 #endif
         viewModels.append(
             SettingsListItemViewModel(
