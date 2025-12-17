@@ -702,6 +702,16 @@ impl NymVpnService {
                     }
                 });
             }
+
+            // When dVPN connects, if SOCKS5 is already enabled, it may not work
+            // because SOCKS5 might be using a different gateway than vpn selection
+            if matches!(new_state, TunnelState::Connected { .. })
+                && self.socks5_service.is_enabled()
+            {
+                tracing::warn!(
+                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
+                );
+            }
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -1171,43 +1181,42 @@ impl NymVpnService {
                     // Validate that VPN's gateway supports SOCKS5 and has nr_address
                     match NodeIdentity::from_base58_string(vpn_gateway_id) {
                         Ok(vpn_gateway_identity) => {
-                            // Check if this gateway is in our filtered list (supports SOCKS5)
-                            if exit_gateways
-                                .gateway_with_identity(&vpn_gateway_identity)
-                                .is_some()
-                            {
-                                // Verify it has nr_address by doing a lookup
-                                let gateway_full = self
-                                    .gateway_cache_handle
-                                    .lookup_nymnode_by_identity(vpn_gateway_identity)
-                                    .await
-                                    .ok();
+                            // Look up the gateway directly (VPN uses Wg type, but gateway might also support MixnetExit)
+                            let gateway_full = self
+                                .gateway_cache_handle
+                                .lookup_nymnode_by_identity(vpn_gateway_identity)
+                                .await
+                                .ok();
 
-                                if let Some(gateway_full) = gateway_full {
-                                    if gateway_full.nr_address.is_some() {
-                                        tracing::info!(
-                                            "Using VPN's exit gateway {} for SOCKS5 (same gateway, no firewall rules needed)",
-                                            vpn_gateway_id
-                                        );
-                                        // Use VPN's gateway identity - skip selection
-                                        Some(vpn_gateway_identity)
-                                    } else {
-                                        tracing::debug!(
-                                            "VPN's exit gateway {} does not have nr_address, selecting different gateway",
-                                            vpn_gateway_id
-                                        );
-                                        None
-                                    }
+                            if let Some(gateway_full) = gateway_full {
+                                // Check if gateway supports SOCKS5 (has nr_address and can connect as exit)
+                                let supports_socks5 = gateway_full.nr_address.is_some()
+                                    && gateway_full
+                                        .last_probe
+                                        .as_ref()
+                                        .and_then(|probe| probe.outcome.as_exit.as_ref())
+                                        .map(|exit_point| exit_point.can_connect)
+                                        .unwrap_or(false);
+
+                                if supports_socks5 {
+                                    // Gateway supports SOCKS5 - use it directly even if not in filtered MixnetExit list
+                                    // (VPN uses Wg gateways, but they may also support MixnetExit/SOCKS5)
+                                    tracing::info!(
+                                        "Using VPN's exit gateway {} for SOCKS5 (same gateway, firewall rules should allow connection)",
+                                        vpn_gateway_id
+                                    );
+                                    // Use VPN's gateway identity - skip selection
+                                    Some(vpn_gateway_identity)
                                 } else {
                                     tracing::debug!(
-                                        "VPN's exit gateway {} not found in cache, selecting different gateway",
+                                        "VPN's exit gateway {} does not support SOCKS5 (no nr_address or cannot connect as exit), selecting different gateway",
                                         vpn_gateway_id
                                     );
                                     None
                                 }
                             } else {
                                 tracing::debug!(
-                                    "VPN's exit gateway {} does not support SOCKS5, selecting different gateway",
+                                    "VPN's exit gateway {} not found in cache, selecting different gateway",
                                     vpn_gateway_id
                                 );
                                 None
