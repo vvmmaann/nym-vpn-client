@@ -1,11 +1,15 @@
 import SwiftUI
 import ImpactGenerator
+#if os(iOS)
 import PurchasesManager
+#endif
 import UIComponents
 import Theme
 
 public struct CreateAccountWelcomeView: View {
+    #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
+    #endif
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -84,9 +88,11 @@ private extension CreateAccountWelcomeView {
 
     var benefitsList: some View {
         VStack(alignment: .leading, spacing: 8) {
+            #if os(iOS)
             if !purchasesManager.isEligibleForIntroOffer.isEmpty {
                 benefitListItem(titleKey: "createAccount.introOffer", imageName: "moneyBag")
             }
+            #endif
             benefitListItem(titleKey: "createAccount.anonymousMixnetTechnology", imageName: "verifiedUser")
             benefitListItem(titleKey: "createAccount.countries", imageName: "world")
             benefitListItem(titleKey: "createAccount.unlikedData", imageName: "accountBalance")

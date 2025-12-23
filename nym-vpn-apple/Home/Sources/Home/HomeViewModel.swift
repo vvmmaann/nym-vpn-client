@@ -202,11 +202,7 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
-#if os(iOS)
         path.append(SettingLink.createAccountWelcome)
-#elseif os(macOS)
-        path.append(SettingLink.addCredentials)
-#endif
     }
 
     @MainActor func navigateToPlanPurchase() {
@@ -345,7 +341,9 @@ extension HomeViewModel {
                 hasInternet: networkMonitor.isAvailable,
                 subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            if credentialsManager.isValidCredentialImported {
+                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            }
 
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)
