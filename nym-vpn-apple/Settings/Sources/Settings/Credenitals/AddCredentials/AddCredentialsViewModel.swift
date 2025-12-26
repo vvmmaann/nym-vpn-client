@@ -8,6 +8,8 @@ import ConfigurationManager
 import KeyboardManager
 #endif
 import Theme
+import ImpactGenerator
+import ExternalLinkManager
 
 @MainActor final class AddCredentialsViewModel: ObservableObject {
     private let credentialsManager: CredentialsManager
@@ -15,7 +17,6 @@ import Theme
 #if os(iOS)
     private let keyboardManager: KeyboardManager
 #endif
-    private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
     private let createAccountTitle = "addCredentials.createAccount".localizedString
 
     var signUpLink: String {
@@ -28,11 +29,7 @@ import Theme
     }
 
     let appSettings: AppSettings
-    let loginButtonTitle = "addCredentials.Login.Title".localizedString
-    let welcomeTitle = "addCredentials.welcome.Title".localizedString
-    let getStartedTitle = "addCredentials.getStarted.Title".localizedString
-    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
-    let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
+    let impactGenerator: ImpactGenerator
     let scannerIconName = "qrcode.viewfinder"
 
     @Binding private var path: NavigationPath
@@ -61,12 +58,14 @@ import Theme
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
+        impactGenerator: ImpactGenerator,
         credentialsManager: CredentialsManager,
         configurationManager: ConfigurationManager,
         keyboardManager: KeyboardManager
     ) {
         _path = path
         self.appSettings = appSettings
+        self.impactGenerator = impactGenerator
         self.credentialsManager = credentialsManager
         self.configurationManager = configurationManager
         self.keyboardManager = keyboardManager
@@ -75,19 +74,17 @@ import Theme
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
+        impactGenerator: ImpactGenerator,
         configurationManager: ConfigurationManager,
         credentialsManager: CredentialsManager
     ) {
         _path = path
         self.appSettings = appSettings
+        self.impactGenerator = impactGenerator
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
     }
 #endif
-
-    func createAnAccountAttributedString() -> AttributedString? {
-        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(signUpLink))")
-    }
 
     @MainActor func importCredentials() {
         error = CredentialsManagerError.noError
@@ -115,6 +112,19 @@ extension AddCredentialsViewModel {
 
     func navigateHome() {
         path = .init()
+    }
+
+    func navigateToSocialLogin() {
+        // todo
+    }
+
+    func navigateToCreateAccount() {
+        #if os(iOS)
+        impactGenerator.impact()
+        path.append(SettingLink.generatePassphrase)
+        #elseif os(macOS)
+        try? ExternalLinkManager.shared.openExternalURL(urlString: signUpLink)
+        #endif
     }
 }
 

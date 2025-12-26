@@ -1003,6 +1003,17 @@
         }
       }
     },
+    "addCredentials.continueWithSocialAccountButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with social account"
+          }
+        }
+      }
+    },
     "addCredentials.createAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1100,6 +1111,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "获取访问代码"
+          }
+        }
+      }
+    },
+    "addCredentials.createAnonymousAccountButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create anonymous account"
           }
         }
       }
@@ -1609,6 +1631,17 @@
         }
       }
     },
+    "addCredentials.enterOrPaste" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter or paste your passphrase:"
+          }
+        }
+      }
+    },
     "addCredentials.error.cannotCreateCache" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2018,98 +2051,109 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تسجيل الدخول"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Zugangsdaten hinzufügen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next"
+            "value" : "Log in"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Siguiente"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "بعدی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Suivant"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "अगला"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aggiungi credenziali"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "次へ"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Próximo"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Próximo"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Далее"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Devam edin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Далі"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tiếp theo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "下一步"
+          }
+        }
+      }
+    },
+    "addCredentials.logInto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log into"
           }
         }
       }
@@ -2215,12 +2259,113 @@
         }
       }
     },
+    "addCredentials.passphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "عبارة استرداد"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Zugangsdaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "24 word-passphrase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Código de acceso"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "کد دسترسی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Code d'accès"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "रिकवरी वाक्यांश"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Credenziali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "アクセスコード"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Código de acesso"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Código de acesso"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Код доступа"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Erişim Kodu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Код доступу"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mã truy cập"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "访问代码"
+          }
+        }
+      }
+    },
     "addCredentials.placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "رمز الوصول\n\nعلى سبيل المثال دخان الطلاء الجمجمة الجمجمة لقصر الضبابية الضارة..."
           }
         },
@@ -2233,84 +2378,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "value" : "word1 word2 word3 word4… (24 words)"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "código de acceso de 24 palabras\n\npor ejemplo smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "کد دسترسی ۲۴ کلمه‌ای\n\nبرای مثال: smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Code d'accès de 24 mots\n\nPar ex. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-शब्द-एक्सेस-कोड\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-word-access-code\n\nad esempio fumo artefact velluto cranio pop palace tartaruga danneggia..."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24語で構成されるアクセスコード\n\n例：smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavra\n\npor exemplo, fumaça de crânio de palácio pop tortoise damage rough..."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavras\n\nex.: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Код доступа из 24 слов\n\nнапример, smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24 Kelimelik Erişim Kodu\n\nörneğin: smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-слівний код доступу\n\nнаприклад, дим артефакт оксамитовий череп поп-палац черепаха пошкодження грубий..."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Mã-truy-cập-24-từ\n\nVí dụ: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24词访问代码\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
@@ -2720,6 +2865,17 @@
         }
       }
     },
+    "addCredentials.twentyFourWords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "24 words separated by spaces"
+          }
+        }
+      }
+    },
     "addCredentials.welcome.Title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2817,107 +2973,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "欢迎来到"
-          }
-        }
-      }
-    },
-    "addCredtenials.mnemonic" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "عبارة استرداد"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Zugangsdaten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passphrase"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Código de acceso"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "کد دسترسی"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Code d'accès"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "रिकवरी वाक्यांश"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Credenziali"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "アクセスコード"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Código de acesso"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Código de acesso"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Код доступа"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Erişim Kodu"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Код доступу"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mã truy cập"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "访问代码"
           }
         }
       }

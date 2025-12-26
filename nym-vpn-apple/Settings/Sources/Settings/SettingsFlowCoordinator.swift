@@ -124,6 +124,7 @@ private extension SettingsFlowCoordinator {
                 AddCredentialsViewModel(
                     path: $flowState.path,
                     appSettings: .shared,
+                    impactGenerator: .shared,
                     credentialsManager: .shared,
                     configurationManager: .shared,
                     keyboardManager: .shared
@@ -134,6 +135,7 @@ private extension SettingsFlowCoordinator {
             viewModel: AddCredentialsViewModel(
                 path: $flowState.path,
                 appSettings: .shared,
+                impactGenerator: .shared,
                 configurationManager: .shared,
                 credentialsManager: .shared
             )

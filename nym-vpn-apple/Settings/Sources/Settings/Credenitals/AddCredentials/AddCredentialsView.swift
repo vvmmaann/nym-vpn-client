@@ -66,7 +66,6 @@ private extension AddCredentialsView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            title: "NymVPN",
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
     }
@@ -79,6 +78,12 @@ private extension AddCredentialsView {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
+        .safeAreaInset(edge: .top) {
+            Color.clear.frame(height: Device.isMacOS ? 120 : 80)
+        }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: Device.isMacOS ? 120 : 80)
+        }
         .scrollIndicators(.hidden)
         .onTapGesture {
             isFocused = false
@@ -87,8 +92,7 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func content(safeAreaInsets: EdgeInsets) -> some View {
-        Spacer()
-        getStartedSection()
+        titleSection()
             .onTapGesture {
                 isFocused = false
             }
@@ -112,46 +116,46 @@ private extension AddCredentialsView {
 // #endif
         }
         .padding(.vertical, 16)
-#if os(macOS)
+
         createAccount()
-#endif
-        Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
 
     @ViewBuilder
-    func getStartedSection() -> some View {
-        Spacer()
-            .frame(height: 40)
-
-        welcomeText()
+    func titleSection() -> some View {
+        titleText()
         Spacer()
             .frame(height: 16)
 
-        getStartedTitleText()
+        subtitleText()
         Spacer()
             .frame(height: 16)
     }
 
     @ViewBuilder
-    func welcomeText() -> some View {
-        Text(viewModel.welcomeTitle)
-            .textStyle(.Headline.Large.regular)
+    func titleText() -> some View {
+        Text("\("addCredentials.logInto".localizedString) \("NymVPN".localizedString)")
+            .textStyle(.Headline.ExtraLarge.bold)
+            .foregroundStyle(NymColor.primary)
     }
 
     @ViewBuilder
-    func getStartedTitleText() -> some View {
-        Text(viewModel.getStartedTitle)
-            .textStyle(.Body.Large.regular)
-            .foregroundStyle(NymColor.gray1)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
+    func subtitleText() -> some View {
+        VStack {
+            Text("addCredentials.enterOrPaste".localizedString)
+                .textStyle(.Body.Large.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.center)
+            Text("addCredentials.twentyFourWords".localizedString)
+                .textStyle(.Body.Large.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     @ViewBuilder
     func inputView() -> some View {
         LazyVStack(alignment: .leading) {
-            TextField(viewModel.credentialsPlaceholderTitle, text: $viewModel.credentialText, axis: .vertical)
+            TextField("addCredentials.placeholder".localizedString, text: $viewModel.credentialText, axis: .vertical)
 // https://stackoverflow.com/questions/74989806/how-to-dismiss-keyboard-in-swiftui-keyboard-when-pressing-done
 //                .onSubmit {
 //                    viewModel.importCredentials()
@@ -184,12 +188,12 @@ private extension AddCredentialsView {
                 .stroke(viewModel.textFieldStrokeColor, lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
-            Text(viewModel.mnemonicSubtitle)
+            Text("addCredentials.passphrase".localizedString)
                 .foregroundStyle(viewModel.credentialSubtitleColor)
                 .textStyle(.Body.Small.regular)
                 .padding(4)
                 .background(NymColor.background)
-                .position(x: 55, y: 0)
+                .position(x: 70, y: 0)
         }
         .padding(EdgeInsets(top: 12, leading: 16, bottom: viewModel.bottomPadding, trailing: 16))
     }
@@ -208,7 +212,7 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func loginButton() -> some View {
-        GenericButton(title: viewModel.loginButtonTitle)
+        GenericButton(title: "addCredentials.Login.Title".localizedString)
             .padding(.horizontal, 16)
             .onTapGesture {
                 login()
@@ -231,14 +235,35 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func createAccount() -> some View {
-        if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
-            Text(createAccountAttributedString)
-                .tint(NymColor.accent)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
+        VStack(spacing: 32) {
+            GenericButton(
+                title: "addCredentials.continueWithSocialAccountButton".localizedString,
+                style: .primaryBorderOnly
+            )
+            .onTapGesture {
+                viewModel.navigateToSocialLogin()
+            }
+            .accessibilityAction {
+                viewModel.navigateToSocialLogin()
+            }
+
+            Text("addCredentials.newToNymVPN".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+
+            GenericButton(
+                title: "addCredentials.createAnonymousAccountButton".localizedString,
+                style: .primaryBorderOnly
+            )
+            .onTapGesture {
+                viewModel.navigateToCreateAccount()
+            }
+            .accessibilityAction {
+                viewModel.navigateToCreateAccount()
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
     }
 }
 
