@@ -5,6 +5,8 @@ import PurchasesManager
 #endif
 import UIComponents
 import Theme
+import Constants
+import ExternalLinkManager
 
 public struct CreateAccountWelcomeView: View {
     #if os(iOS)
@@ -15,24 +17,34 @@ public struct CreateAccountWelcomeView: View {
     public var body: some View {
         VStack(spacing: 0) {
             navbar
-            Spacer()
-            VStack(spacing: 0) {
-                backgroundDots
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer()
+                        .frame(height: 48)
+                    logoView
+                    Spacer()
+                        .frame(height: 48)
+                    welcomeTitle
+                    Spacer()
+                        .frame(height: 24)
+                    maximumPrivacySection
+                    Divider()
+                        .frame(height: 1)
+                        .overlay(NymColor.gray2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                    quickSetupSection
+                    Divider()
+                        .frame(height: 1)
+                        .overlay(NymColor.gray2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                    alreadyHaveAnAccountSection
+                }
+                .frame(maxWidth: MagicNumbers.moreMaxWidth)
+                .padding(.horizontal, 32)
                 Spacer()
-                    .frame(height: 40)
-                welcomeTitle
-                nymVpnTitle
-                Spacer()
-                    .frame(height: 24)
-                benefitsList
-                Spacer()
-                    .frame(height: 32)
-                createAccountButton
-                Spacer()
-                    .frame(height: 32)
-                alreadyHaveAnAccount
             }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,86 +70,106 @@ private extension CreateAccountWelcomeView {
 
     var logoView: some View {
         GenericImage(imageName: "logoText")
-            .frame(height: 24)
+            .frame(width: 110, height: 30)
             .accessibilityLabel("NymVPN".localizedString)
-            .accessibilityAddTraits([.isImage])
-    }
-
-    var backgroundDots: some View {
-        ZStack {
-            GenericImage(imageName: "createAccountWelcomeDots")
-            logoView
-        }
     }
 
     var welcomeTitle: some View {
-        Text("addCredentials.welcome.Title".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
+        Text("\("addCredentials.welcome.Title".localizedString) \("NymVPN".localizedString)")
+            .textStyle(.Headline.Large.regular)
             .foregroundStyle(NymColor.primary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
     }
 
-    var nymVpnTitle: some View {
-        Text("NymVPN".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
-            .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-    }
-
-    var benefitsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            #if os(iOS)
-            if !purchasesManager.isEligibleForIntroOffer.isEmpty {
-                benefitListItem(titleKey: "createAccount.introOffer", imageName: "moneyBag")
+    var maximumPrivacySection: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
+                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(NymColor.primary)
+                Spacer()
             }
-            #endif
-            benefitListItem(titleKey: "createAccount.anonymousMixnetTechnology", imageName: "verifiedUser")
-            benefitListItem(titleKey: "createAccount.countries", imageName: "world")
-            benefitListItem(titleKey: "createAccount.unlikedData", imageName: "accountBalance")
-            benefitListItem(titleKey: "createAccount.openSource", imageName: "code")
+            .padding(.bottom, 8)
+
+            HStack {
+                Text("createAccount.maximumPrivacyDetails".localizedString)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+            }
+            .padding(.bottom, 16)
+
+            GenericButton(title: "createAccount.createAnonymousAccountButton".localizedString)
+                .onTapGesture {
+                    navigateToCreateAccount()
+                }
+                .accessibilityAction {
+                    navigateToCreateAccount()
+                }
         }
     }
 
-    func benefitListItem(titleKey: String, imageName: String) -> some View {
-        HStack(spacing: 0) {
-            GenericImage(imageName: imageName)
-                .frame(width: 20, height: 20)
-                .foregroundStyle(NymColor.accent)
-            Spacer()
-                .frame(width: 8)
-            Text(titleKey.localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-        }
-    }
+    var quickSetupSection: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("⚡️ \("createAccount.quickSetup".localizedString)")
+                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(NymColor.primary)
+                Spacer()
+            }
+            .padding(.bottom, 8)
 
-    var createAccountButton: some View {
-        GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
-            .padding(.horizontal, 16)
+            HStack {
+                Text("createAccount.quickSetupDetails".localizedString)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+            }
+            .padding(.bottom, 16)
+
+            GenericButton(
+                title: "createAccount.continueWithSocialAccountButton".localizedString,
+                style: .primaryBorderOnly
+            )
             .onTapGesture {
-                navigateToCreateAccount()
+                navigateToSocialLogin()
             }
             .accessibilityAction {
-                navigateToCreateAccount()
+                navigateToSocialLogin()
             }
+        }
     }
 
-    @ViewBuilder var alreadyHaveAnAccount: some View {
-        if let loginAttributedString = loginAttributedString() {
-            Text(loginAttributedString)
-                .tint(NymColor.accent)
-                .textStyle(.Body.Large.regular)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(NymColor.gray1)
-                .padding(.bottom, 24)
-                .environment(\.openURL, OpenURLAction { url in
-                    guard url.absoluteString == "login" else { return .discarded }
-                    navigateToLogin()
-                    return .handled
-                })
+    var alreadyHaveAnAccountSection: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("createAccount.alreadyHaveAccount".localizedString)
+                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(NymColor.primary)
+                Spacer()
+            }
+            .padding(.bottom, 8)
+
+            GenericButton(
+                title: "createAccount.loginWithPassphrase".localizedString,
+                style: .primaryBorderOnly
+            )
+            .padding(.bottom, 24)
+            .onTapGesture {
+                navigateToLogin()
+            }
+            .accessibilityAction {
+                navigateToLogin()
+            }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            guard url.absoluteString == "login" else { return .discarded }
+            navigateToLogin()
+            return .handled
+        })
     }
 }
 
@@ -148,22 +180,29 @@ private extension CreateAccountWelcomeView {
     }
 
     func navigateToCreateAccount() {
+        #if os(iOS)
         ImpactGenerator.shared.impact()
         path.append(SettingLink.generatePassphrase)
+        #elseif os(macOS)
+        try? ExternalLinkManager.shared.openExternalURL(urlString: signUpLink)
+        #endif
     }
 
     func navigateToLogin() {
         ImpactGenerator.shared.impact()
         path.append(SettingLink.addCredentials)
     }
-}
+    
+    func navigateToSocialLogin() {
+        // TODO
+    }
 
-// MARK: - Helpers -
-private extension CreateAccountWelcomeView {
-    func loginAttributedString() -> AttributedString? {
-        let alreadyHaveAcccount = "createAccount.alreadyHaveAccount".localizedString
-        let login = "createAccount.login".localizedString
-        let loginLink = "login"
-        return try? AttributedString(markdown: "\(alreadyHaveAcccount) [\(login)](\(loginLink))")
+    var signUpLink: String {
+        // TODO: read once the link is updated in the api
+//        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
+//            return link
+//        } else {
+            Constants.pricingURL.rawValue
+//        }
     }
 }
