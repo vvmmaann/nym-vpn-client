@@ -92,7 +92,7 @@ import ExternalLinkManager
 
         Task {
             do {
-                try await credentialsManager.add(credential: trimmedCredential)
+                try await credentialsManager.add(credential: trimmedCredential, type: .mnemonic)
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in

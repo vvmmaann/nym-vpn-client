@@ -27,4 +27,8 @@ extension GRPCManager {
             return (links.account, links.signIn, links.signUp)
         }.value
     }
+    
+    public func getPrivyDerivationMessage() async throws -> PrivyDerivationMessage? {
+        try await rpcClient?.getPrivyDerivationMessage()
+    }
 }

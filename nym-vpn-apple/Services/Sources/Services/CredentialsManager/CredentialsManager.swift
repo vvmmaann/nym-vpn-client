@@ -8,8 +8,14 @@ import ErrorReason
 import ErrorHandler
 import NymVPNLib
 #elseif os(macOS)
+import NymVPNRpc
 import GRPCManager
 #endif
+
+public enum CredentialType {
+    case mnemonic
+    case signature
+}
 
 @MainActor public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
@@ -37,14 +43,18 @@ import GRPCManager
         setup()
     }
 
-    public func add(credential: String) async throws {
+    public func add(credential: String, type: CredentialType) async throws {
         try await Task {
             do {
+                let request: StoreAccountRequest = switch type {
+                case .mnemonic: .vpn(mnemonic: credential)
+                case .signature: .privy(hexSignature: credential)
+                }
 #if os(iOS)
                 let dataFolderURL = try Self.dataFolderURL()
-                try loginRaw(request: .vpn(mnemonic: credential), path: dataFolderURL.path())
+                try loginRaw(request: request, path: dataFolderURL.path())
 #elseif os(macOS)
-                try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
+                try await grpcManager.storeAccount(with: request)
 #endif
                 checkCredentialImport()
             } catch {
