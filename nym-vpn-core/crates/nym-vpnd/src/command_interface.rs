@@ -854,6 +854,29 @@ impl NymVpnService for CommandInterface {
             message: nym_vpn_lib::login::privy::message_to_sign(),
         }))
     }
+
+    async fn run_diagnostic(
+        &self,
+        request: tonic::Request<proto::RunDiagnosticSettings>,
+    ) -> Result<tonic::Response<proto::DiagnosticReport>> {
+        let req = request.into_inner();
+        let report = self
+            .send_and_wait(
+                VpnServiceCommand::RunDiagnostic,
+                (
+                    req.skip_dns,
+                    req.skip_http,
+                    req.gateway.map(|gateway_id| gateway_id.id),
+                ),
+            )
+            .await?;
+
+        let proto_report = report.try_into().map_err(|e| {
+            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
+        })?;
+
+        Ok(tonic::Response::new(proto_report))
+    }
 }
 
 pub async fn start_command_interface(

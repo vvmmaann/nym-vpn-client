@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_diagnostic::DiagnosticReport;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings, ListGatewaysOptions, LogPath,
@@ -646,6 +647,26 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(PrivyDerivationMessage::from(response))
+    }
+
+    pub async fn run_diagnostic(
+        &mut self,
+        skip_dns: bool,
+        skip_http: bool,
+        gateway: Option<String>,
+    ) -> Result<DiagnosticReport> {
+        let settings = proto::RunDiagnosticSettings {
+            skip_dns,
+            skip_http,
+            gateway: gateway.map(|id| proto::GatewayId { id }),
+        };
+        let response = self
+            .0
+            .run_diagnostic(settings)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        DiagnosticReport::try_from(response).map_err(Error::InvalidResponse)
     }
 }
 

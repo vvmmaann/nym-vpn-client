@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use nym_diagnostic::{DiagnosticHandler, DiagnosticReport};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -149,6 +150,10 @@ pub enum VpnServiceCommand {
     GetNetStatsSeed(
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
+    ),
+    RunDiagnostic(
+        oneshot::Sender<DiagnosticReport>,
+        (bool, bool, Option<String>),
     ),
 }
 
@@ -914,6 +919,12 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::RunDiagnostic(tx, (skip_dns, skip_http, gateway)) => {
+                let _ = tx.send(
+                    self.handle_run_diagnostic(skip_dns, skip_http, gateway)
+                        .await,
+                );
+            }
         }
     }
 
@@ -1569,5 +1580,20 @@ impl NymVpnService {
         &mut self,
     ) -> Result<NetworkStatisticsIdentity, StatisticsControllerError> {
         self.stats_control_commands_sender.get_seed().await
+    }
+
+    async fn handle_run_diagnostic(
+        &self,
+        skip_dns: bool,
+        skip_http: bool,
+        gateway: Option<String>,
+    ) -> DiagnosticReport {
+        let network = *self.network_tx.borrow().clone();
+        let report = DiagnosticHandler::run(network, gateway, skip_dns, skip_http).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
     }
 }
