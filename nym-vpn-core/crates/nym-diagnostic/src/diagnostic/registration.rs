@@ -273,7 +273,7 @@ async fn setup_bandwidth_provider(
 
     let storage_paths = StoragePaths::new_from_dir(storage_path)?;
     if !storage_paths.credential_database_path.exists() {
-        return Err(anyhow::anyhow!("Credential database doesn't exists"));
+        return Err(anyhow::anyhow!("Credential database doesn't exist"));
     }
     let credential_storage = storage_paths.persistent_credential_storage().await?;
     let nyxd_client = NyxdClient::connect(config, nyxd_url.as_str())?;
