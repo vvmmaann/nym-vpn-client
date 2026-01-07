@@ -10,14 +10,8 @@ use nym_vpn_proto::rpc_client::RpcClient;
 
 pub(crate) async fn execute(subcommand: Command, mut rpc_client: RpcClient) -> Result<()> {
     match subcommand {
-        Command::Run {
-            gateway,
-            skip_dns,
-            skip_http,
-        } => {
-            let report = rpc_client
-                .run_diagnostic(skip_dns, skip_http, gateway)
-                .await?;
+        Command::Run(params) => {
+            let report = rpc_client.run_diagnostic(params).await?;
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }

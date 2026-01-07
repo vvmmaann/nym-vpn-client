@@ -20,12 +20,8 @@ async fn main() -> anyhow::Result<()> {
     let network = Network::mainnet_default().ok_or(anyhow::anyhow!("Missing network config"))?;
 
     match args.command {
-        Command::Run {
-            gateway,
-            skip_dns,
-            skip_http,
-        } => {
-            let report = DiagnosticHandler::run(network, gateway, skip_dns, skip_http).await;
+        Command::Run(parameters) => {
+            let report = DiagnosticHandler::run(network, parameters).await;
             tracing::info!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }

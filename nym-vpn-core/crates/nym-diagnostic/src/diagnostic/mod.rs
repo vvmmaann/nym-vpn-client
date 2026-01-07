@@ -4,11 +4,14 @@
 use nym_vpn_network_config::Network;
 use serde::{Deserialize, Serialize};
 
-use crate::diagnostic::{
-    dns::{CompleteDnsReport, DnsDiagnostic},
-    gateway::{GatewayDiagnostic, GatewayReport},
-    helpers::DiagnosticResult,
-    http::{HttpDiagnostic, HttpReport},
+use crate::{
+    cli::RunParams,
+    diagnostic::{
+        dns::{CompleteDnsReport, DnsDiagnostic},
+        gateway::{GatewayDiagnostic, GatewayReport},
+        helpers::DiagnosticResult,
+        http::{HttpDiagnostic, HttpReport},
+    },
 };
 pub struct DiagnosticHandler;
 
@@ -18,15 +21,10 @@ mod helpers;
 mod http;
 
 impl DiagnosticHandler {
-    pub async fn run(
-        network: Network,
-        gateway_id: Option<String>,
-        skip_dns: bool,
-        skip_http: bool,
-    ) -> DiagnosticReport {
+    pub async fn run(network: Network, parameters: RunParams) -> DiagnosticReport {
         let api_hostnames = helpers::hostnames(&network);
 
-        let dns_report = if !skip_dns {
+        let dns_report = if !parameters.skip_dns {
             Some(
                 DnsDiagnostic::run_diagnostic(&api_hostnames)
                     .await
@@ -36,7 +34,7 @@ impl DiagnosticHandler {
             None
         };
 
-        let http_report = if !skip_http {
+        let http_report = if !parameters.skip_http {
             Some(
                 HttpDiagnostic::run_diagnostic(&network)
                     .await
@@ -46,7 +44,7 @@ impl DiagnosticHandler {
             None
         };
 
-        let gateway_report = match gateway_id {
+        let gateway_report = match parameters.gateway {
             Some(id) => Some(
                 GatewayDiagnostic::run_diagnostic(&network, &id)
                     .await

@@ -153,7 +153,7 @@ pub enum VpnServiceCommand {
     ),
     RunDiagnostic(
         oneshot::Sender<DiagnosticReport>,
-        (bool, bool, Option<String>),
+        nym_diagnostic::cli::RunParams,
     ),
 }
 
@@ -919,11 +919,8 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::RunDiagnostic(tx, (skip_dns, skip_http, gateway)) => {
-                let _ = tx.send(
-                    self.handle_run_diagnostic(skip_dns, skip_http, gateway)
-                        .await,
-                );
+            VpnServiceCommand::RunDiagnostic(tx, params) => {
+                let _ = tx.send(self.handle_run_diagnostic(params).await);
             }
         }
     }
@@ -1584,12 +1581,10 @@ impl NymVpnService {
 
     async fn handle_run_diagnostic(
         &self,
-        skip_dns: bool,
-        skip_http: bool,
-        gateway: Option<String>,
+        params: nym_diagnostic::cli::RunParams,
     ) -> DiagnosticReport {
         let network = *self.network_tx.borrow().clone();
-        let report = DiagnosticHandler::run(network, gateway, skip_dns, skip_http).await;
+        let report = DiagnosticHandler::run(network, params).await;
         match serde_json::to_string_pretty(&report) {
             Ok(report_log) => tracing::info!("{report_log}"),
             Err(e) => tracing::error!("Error serializing report :{e}"),

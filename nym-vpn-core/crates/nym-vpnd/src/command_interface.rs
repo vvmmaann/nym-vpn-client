@@ -857,18 +857,11 @@ impl NymVpnService for CommandInterface {
 
     async fn run_diagnostic(
         &self,
-        request: tonic::Request<proto::RunDiagnosticSettings>,
+        request: tonic::Request<proto::DiagnosticRunParams>,
     ) -> Result<tonic::Response<proto::DiagnosticReport>> {
         let req = request.into_inner();
         let report = self
-            .send_and_wait(
-                VpnServiceCommand::RunDiagnostic,
-                (
-                    req.skip_dns,
-                    req.skip_http,
-                    req.gateway.map(|gateway_id| gateway_id.id),
-                ),
-            )
+            .send_and_wait(VpnServiceCommand::RunDiagnostic, req.into())
             .await?;
 
         let proto_report = report.try_into().map_err(|e| {

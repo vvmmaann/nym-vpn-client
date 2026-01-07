@@ -45,19 +45,22 @@ impl CliArgs {
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
     /// Run diagnostic
-    Run {
-        /// Id of the gateway we are going to connect to.
-        #[arg(long)]
-        gateway: Option<String>,
+    Run(RunParams),
+}
 
-        /// Skip DNS diagnostic
-        #[clap(long, action = clap::ArgAction::SetTrue)]
-        skip_dns: bool,
+#[derive(Debug, Clone, clap::Args)]
+pub struct RunParams {
+    /// Id of the gateway we are going to connect to.
+    #[arg(long)]
+    pub gateway: Option<String>,
 
-        /// Skip HTTP diagnostic
-        #[clap(long, action = clap::ArgAction::SetTrue)]
-        skip_http: bool,
-    },
+    /// Skip DNS diagnostic
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    pub skip_dns: bool,
+
+    /// Skip HTTP diagnostic
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    pub skip_http: bool,
 }
 
 // fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {

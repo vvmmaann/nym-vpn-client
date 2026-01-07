@@ -22,3 +22,23 @@ impl TryFrom<proto::DiagnosticReport> for nym_diagnostic::DiagnosticReport {
         })
     }
 }
+
+impl From<proto::DiagnosticRunParams> for nym_diagnostic::cli::RunParams {
+    fn from(value: proto::DiagnosticRunParams) -> Self {
+        Self {
+            gateway: value.gateway.map(|g| g.id),
+            skip_dns: value.skip_dns,
+            skip_http: value.skip_http,
+        }
+    }
+}
+
+impl From<nym_diagnostic::cli::RunParams> for proto::DiagnosticRunParams {
+    fn from(value: nym_diagnostic::cli::RunParams) -> Self {
+        Self {
+            gateway: value.gateway.map(|id| proto::GatewayId { id }),
+            skip_dns: value.skip_dns,
+            skip_http: value.skip_http,
+        }
+    }
+}

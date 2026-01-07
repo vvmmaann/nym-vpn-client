@@ -651,18 +651,12 @@ impl RpcClient {
 
     pub async fn run_diagnostic(
         &mut self,
-        skip_dns: bool,
-        skip_http: bool,
-        gateway: Option<String>,
+        params: nym_diagnostic::cli::RunParams,
     ) -> Result<DiagnosticReport> {
-        let settings = proto::RunDiagnosticSettings {
-            skip_dns,
-            skip_http,
-            gateway: gateway.map(|id| proto::GatewayId { id }),
-        };
+        let request = proto::DiagnosticRunParams::from(params);
         let response = self
             .0
-            .run_diagnostic(settings)
+            .run_diagnostic(request)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
