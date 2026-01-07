@@ -4002,10 +4002,10 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.20.1",
  "tokio_with_wasm",
  "tracing",
- "tungstenite",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4309,6 +4309,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-diagnostic"
+version = "1.21.0-beta"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "futures",
+ "hickory-resolver",
+ "nym-bin-common",
+ "nym-crypto",
+ "nym-gateway-directory",
+ "nym-gateway-requests",
+ "nym-http-api-client",
+ "nym-validator-client",
+ "nym-vpn-api-client",
+ "nym-vpn-lib",
+ "nym-vpn-lib-types",
+ "nym-vpn-network-config",
+ "serde",
+ "serde_json",
+ "time",
+ "tokio",
+ "tokio-tungstenite 0.28.0",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "vergen-gitcl",
+]
+
+[[package]]
 name = "nym-dns"
 version = "1.22.0-beta"
 dependencies = [
@@ -4432,9 +4462,9 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.20.1",
  "tracing",
- "tungstenite",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4493,7 +4523,7 @@ dependencies = [
  "time",
  "tokio",
  "tracing",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasmtimer",
  "zeroize",
 ]
@@ -5693,10 +5723,12 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.22.0-beta"
 dependencies = [
+ "nym-diagnostic",
  "nym-ipc",
  "nym-vpn-lib-types",
  "prost 0.14.1",
  "prost-types",
+ "serde_json",
  "thiserror 2.0.17",
  "time",
  "tokio-stream",
@@ -5748,6 +5780,7 @@ dependencies = [
  "anyhow",
  "celes",
  "clap",
+ "nym-diagnostic",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "serde_json",
@@ -5772,6 +5805,7 @@ dependencies = [
  "log-panics",
  "nym-bin-common",
  "nym-common",
+ "nym-diagnostic",
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-ipc",
@@ -7694,9 +7728,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "3.15.1"
+version = "3.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa66c845eee442168b2c8134fec70ac50dc20e760769c8ba0ad1319ca1959b04"
+checksum = "4fa237f2807440d238e0364a218270b98f767a00d3dada77b1c53ae88940e2e7"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -7713,9 +7747,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "3.15.1"
+version = "3.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b91a903660542fced4e99881aa481bdbaec1634568ee02e0b8bd57c64cb38955"
+checksum = "52a8e3ca0ca629121f70ab50f95249e5a6f925cc0f6ffe8256c45b728875706c"
 dependencies = [
  "darling 0.21.3",
  "proc-macro2",
@@ -8781,8 +8815,20 @@ dependencies = [
  "rustls 0.21.12",
  "tokio",
  "tokio-rustls 0.24.1",
- "tungstenite",
+ "tungstenite 0.20.1",
  "webpki-roots 0.25.4",
+]
+
+[[package]]
+name = "tokio-tungstenite"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d25a406cddcc431a75d3d9afc6a7c0f7428d4891dd973e4d54c56b46127bf857"
+dependencies = [
+ "futures-util",
+ "log",
+ "tokio",
+ "tungstenite 0.28.0",
 ]
 
 [[package]]
@@ -9243,6 +9289,23 @@ dependencies = [
  "url",
  "utf-8",
  "webpki-roots 0.24.0",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8628dcc84e5a09eb3d8423d6cb682965dea9133204e8fb3efee74c2a0c259442"
+dependencies = [
+ "bytes",
+ "data-encoding",
+ "http 1.3.1",
+ "httparse",
+ "log",
+ "rand 0.9.2",
+ "sha1",
+ "thiserror 2.0.17",
+ "utf-8",
 ]
 
 [[package]]
@@ -9834,7 +9897,7 @@ dependencies = [
  "gloo-net",
  "gloo-utils",
  "js-sys",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
