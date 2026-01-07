@@ -22,10 +22,6 @@ pub(crate) struct CliArgs {
     // #[arg(short, long, hide = true)]
     // pub network: String,
 
-    /// Override the default user agent string.
-    // #[arg(long, value_parser = parse_user_agent)]
-    // pub user_agent: Option<UserAgent>,
-
     /// Subcommand to execute
     #[command(subcommand)]
     pub command: Command,
@@ -47,7 +43,7 @@ pub enum Command {
     /// Run diagnostic
     Run(RunParams),
 
-    /// Register to a gateway for diagnostic. SUCCESSFUL RUNS ARE WASTING AN ENTRY TICKET
+    /// Register to a gateway for diagnostic. SUCCESSFUL RUNS ARE SPENDING AN ENTRY TICKET
     Register(RegisterParams),
 }
 
@@ -74,9 +70,5 @@ pub struct RegisterParams {
 
     /// Path to the storage dir
     #[arg(long)]
-    pub storage_path: PathBuf,
+    pub storage_path: Option<PathBuf>,
 }
-
-// fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {
-//     UserAgent::from_str(user_agent).map_err(|e| e.to_string())
-// }

@@ -868,8 +868,18 @@ message DiagnosticRunParams {
     optional GatewayId gateway = 3;
 }
 
+message DiagnosticRegisterParams {
+    GatewayId gateway = 1;
+    optional string storage_path = 2;
+}
+
 // Very nested struct and more often than not just used for logging, so JSON will do
 message DiagnosticReport {
+    string json = 1;
+}
+
+// Very nested struct and more often than not just used for logging, so JSON will do
+message RegistrationDiagnosticReport {
     string json = 1;
 }
 
@@ -1020,4 +1030,5 @@ service NymVpnService {
 
   // Diagnostic stuff
   rpc RunDiagnostic (DiagnosticRunParams) returns (DiagnosticReport) {}
+  rpc RegisterDiagnostic (DiagnosticRegisterParams) returns (RegistrationDiagnosticReport) {}
 }

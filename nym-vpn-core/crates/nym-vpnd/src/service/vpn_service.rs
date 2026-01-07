@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use nym_diagnostic::{DiagnosticHandler, DiagnosticReport};
+use nym_diagnostic::{DiagnosticHandler, DiagnosticReport, RegistrationDiagnosticReport};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -154,6 +154,10 @@ pub enum VpnServiceCommand {
     RunDiagnostic(
         oneshot::Sender<DiagnosticReport>,
         nym_diagnostic::cli::RunParams,
+    ),
+    RegisterDiagnostic(
+        oneshot::Sender<RegistrationDiagnosticReport>,
+        nym_diagnostic::cli::RegisterParams,
     ),
 }
 
@@ -922,6 +926,9 @@ impl NymVpnService {
             VpnServiceCommand::RunDiagnostic(tx, params) => {
                 let _ = tx.send(self.handle_run_diagnostic(params).await);
             }
+            VpnServiceCommand::RegisterDiagnostic(tx, params) => {
+                let _ = tx.send(self.handle_register_diagnostic(params).await);
+            }
         }
     }
 
@@ -1585,6 +1592,29 @@ impl NymVpnService {
     ) -> DiagnosticReport {
         let network = *self.network_tx.borrow().clone();
         let report = DiagnosticHandler::run(network, params).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
+    }
+
+    async fn handle_register_diagnostic(
+        &self,
+        mut params: nym_diagnostic::cli::RegisterParams,
+    ) -> RegistrationDiagnosticReport {
+        if !(*self.tunnel_state.read().await == TunnelState::Disconnected
+            && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
+        {
+            return RegistrationDiagnosticReport::from_err(
+                "Must be disconnected and ready to connect to run registration diagnostic",
+            );
+        }
+        let network = *self.network_tx.borrow().clone();
+        if params.storage_path.is_none() {
+            params.storage_path = Some(self.data_dir.clone());
+        }
+        let report = DiagnosticHandler::register(network, params).await;
         match serde_json::to_string_pretty(&report) {
             Ok(report_log) => tracing::info!("{report_log}"),
             Err(e) => tracing::error!("Error serializing report :{e}"),

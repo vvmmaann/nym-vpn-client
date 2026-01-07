@@ -31,7 +31,7 @@ struct DiagnosticSetup {
     gateway_version: String,
     gateway_keypair: Arc<x25519::KeyPair>,
     gateway_ip: IpAddr,
-    bandwidth_provider: Box<dyn BandwidthTicketProvider>,
+    bandwidth_provider: Option<Box<dyn BandwidthTicketProvider>>,
 }
 
 pub struct RegistrationDiagnostic;
@@ -41,7 +41,7 @@ impl RegistrationDiagnostic {
     pub async fn run_diagnostic(
         network: &Network,
         gateway_id: &str,
-        storage_path: &PathBuf,
+        storage_path: Option<&PathBuf>,
     ) -> anyhow::Result<RegistrationReport> {
         tracing::info!("Registering diagnostic on gateway {}", gateway_id);
         let diagnostic_setup = Self::setup(network, gateway_id, storage_path).await?;
@@ -83,6 +83,14 @@ impl RegistrationDiagnostic {
         };
 
         tracing::info!("Mixnet client started");
+        let Some(bandwidth_provider) = diagnostic_setup.bandwidth_provider else {
+            tracing::warn!("No storage path provided, impossible to register");
+            mixnet_client.disconnect().await;
+            registration_report.wireguard_registration =
+                Some(DiagnosticResult::from_err("No storage provided"));
+            return Ok(registration_report);
+        };
+
         tracing::info!("Registering...");
 
         match Self::wireguard_registration(
@@ -91,7 +99,7 @@ impl RegistrationDiagnostic {
             diagnostic_setup.gateway_version,
             diagnostic_setup.gateway_keypair,
             diagnostic_setup.gateway_ip,
-            diagnostic_setup.bandwidth_provider,
+            bandwidth_provider,
         )
         .await
         {
@@ -110,7 +118,7 @@ impl RegistrationDiagnostic {
     async fn setup(
         network: &Network,
         gateway_id: &str,
-        storage_path: &PathBuf,
+        storage_path: Option<&PathBuf>,
     ) -> anyhow::Result<DiagnosticSetup> {
         let nym_urls = api_urls_to_urls(
             &network
@@ -163,7 +171,10 @@ impl RegistrationDiagnostic {
             .await
             .ok_or(anyhow::anyhow!("Failed to get topology"))?;
 
-        let bandwidth_provider = Self::setup_bandwidth_provider(network, storage_path).await?;
+        let bandwidth_provider = match storage_path {
+            Some(path) => Some(Self::setup_bandwidth_provider(network, path).await?),
+            None => None,
+        };
 
         Ok(DiagnosticSetup {
             topology_provider: HardcodedTopologyProvider::new(topology),

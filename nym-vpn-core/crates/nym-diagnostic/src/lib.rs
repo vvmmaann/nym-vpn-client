@@ -9,4 +9,4 @@
 pub mod cli;
 mod diagnostic;
 
-pub use diagnostic::{DiagnosticHandler, DiagnosticReport};
+pub use diagnostic::{DiagnosticHandler, DiagnosticReport, RegistrationDiagnosticReport};

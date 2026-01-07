@@ -64,15 +64,17 @@ impl DiagnosticHandler {
     pub async fn register(
         network: Network,
         parameters: RegisterParams,
-    ) -> DiagnosticResult<RegistrationReport> {
-        RegistrationDiagnostic::run_diagnostic(
-            &network,
-            &parameters.gateway,
-            &parameters.storage_path,
+    ) -> RegistrationDiagnosticReport {
+        RegistrationDiagnosticReport(
+            RegistrationDiagnostic::run_diagnostic(
+                &network,
+                &parameters.gateway,
+                parameters.storage_path.as_ref(),
+            )
+            .await
+            .inspect_err(|e| tracing::error!("Registration diagnostic error : {}", e))
+            .into(),
         )
-        .await
-        .inspect_err(|e| tracing::error!("Registration diagnostic error : {}", e))
-        .into()
     }
 }
 
@@ -81,4 +83,14 @@ pub struct DiagnosticReport {
     dns: Option<DiagnosticResult<CompleteDnsReport>>,
     http: Option<DiagnosticResult<HttpReport>>,
     gateway: Option<DiagnosticResult<GatewayReport>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegistrationDiagnosticReport(DiagnosticResult<RegistrationReport>);
+
+impl RegistrationDiagnosticReport {
+    #[allow(dead_code)] // false positive, it's used in the library
+    pub fn from_err(error: impl ToString) -> Self {
+        Self(DiagnosticResult::from_err(error))
+    }
 }

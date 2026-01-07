@@ -870,6 +870,25 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(proto_report))
     }
+
+    async fn register_diagnostic(
+        &self,
+        request: tonic::Request<proto::DiagnosticRegisterParams>,
+    ) -> Result<tonic::Response<proto::RegistrationDiagnosticReport>> {
+        let req = request.into_inner();
+        let register_params = req.try_into().map_err(|e| {
+            tonic::Status::invalid_argument(format!("Invalid Register diagnostic argument: {e}"))
+        })?;
+        let report = self
+            .send_and_wait(VpnServiceCommand::RegisterDiagnostic, register_params)
+            .await?;
+
+        let proto_report = report.try_into().map_err(|e| {
+            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
+        })?;
+
+        Ok(tonic::Response::new(proto_report))
+    }
 }
 
 pub async fn start_command_interface(
