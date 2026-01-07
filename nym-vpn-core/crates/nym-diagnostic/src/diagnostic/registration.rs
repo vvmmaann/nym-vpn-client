@@ -25,18 +25,16 @@ use tokio_util::sync::CancellationToken;
 
 use crate::diagnostic::helpers::DiagnosticResult;
 
-struct DiagnosticSetup {
-    topology_provider: HardcodedTopologyProvider,
+struct WgRegistrationConfig {
     gateway_auth_address: Recipient,
     gateway_version: String,
     gateway_keypair: Arc<x25519::KeyPair>,
     gateway_ip: IpAddr,
-    bandwidth_provider: Option<Box<dyn BandwidthTicketProvider>>,
+    bandwidth_provider: Box<dyn BandwidthTicketProvider>,
 }
 
 pub struct RegistrationDiagnostic;
 
-// SW what about timeouts. What has a timeout already and what doesn't
 impl RegistrationDiagnostic {
     pub async fn run_diagnostic(
         network: &Network,
@@ -44,10 +42,8 @@ impl RegistrationDiagnostic {
         storage_path: Option<&PathBuf>,
     ) -> anyhow::Result<RegistrationReport> {
         tracing::info!("Registering diagnostic on gateway {}", gateway_id);
-        let diagnostic_setup = Self::setup(network, gateway_id, storage_path).await?;
+        let topology_provider = setup_topology(network).await?;
 
-        // From here the setup is correct, so we should return a report
-        tracing::info!("Setup complete");
         let mut registration_report = RegistrationReport {
             mixnet_client_build: DiagnosticResult::from_value(()),
             mixnet_client_start: None,
@@ -58,7 +54,7 @@ impl RegistrationDiagnostic {
         let disconnected_mixnet_client = match Self::build_mixnet_client(
             network.nym_network_details().clone(),
             gateway_id,
-            Box::new(diagnostic_setup.topology_provider),
+            Box::new(topology_provider),
         ) {
             Ok(client) => {
                 registration_report.mixnet_client_build = DiagnosticResult::<()>::SUCCESS;
@@ -70,11 +66,19 @@ impl RegistrationDiagnostic {
             }
         };
 
-        // SW this might need a timeout
-        let mixnet_client = match Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await {
-            Ok(client) => {
+        let mixnet_client = match Box::pin(tokio::time::timeout(
+            Duration::from_secs(10),
+            disconnected_mixnet_client.connect_to_mixnet(),
+        ))
+        .await
+        {
+            Ok(Ok(client)) => {
                 registration_report.mixnet_client_start = Some(DiagnosticResult::<()>::SUCCESS);
                 client
+            }
+            Ok(Err(e)) => {
+                registration_report.mixnet_client_start = Some(DiagnosticResult::from_err(e));
+                return Ok(registration_report);
             }
             Err(e) => {
                 registration_report.mixnet_client_start = Some(DiagnosticResult::from_err(e));
@@ -83,26 +87,22 @@ impl RegistrationDiagnostic {
         };
 
         tracing::info!("Mixnet client started");
-        let Some(bandwidth_provider) = diagnostic_setup.bandwidth_provider else {
-            tracing::warn!("No storage path provided, impossible to register");
-            mixnet_client.disconnect().await;
-            registration_report.wireguard_registration =
-                Some(DiagnosticResult::from_err("No storage provided"));
-            return Ok(registration_report);
+
+        let registration_config = match setup_registration(network, gateway_id, storage_path).await
+        {
+            Ok(config) => config,
+            Err(e) => {
+                registration_report.wireguard_registration = Some(DiagnosticResult::from_err(
+                    format!("Registration not possible: {}", e),
+                ));
+                mixnet_client.disconnect().await;
+                return Ok(registration_report);
+            }
         };
 
         tracing::info!("Registering...");
 
-        match Self::wireguard_registration(
-            mixnet_client,
-            diagnostic_setup.gateway_auth_address,
-            diagnostic_setup.gateway_version,
-            diagnostic_setup.gateway_keypair,
-            diagnostic_setup.gateway_ip,
-            bandwidth_provider,
-        )
-        .await
-        {
+        match Self::wireguard_registration(mixnet_client, registration_config).await {
             Ok(response) => {
                 registration_report.wireguard_registration =
                     Some(DiagnosticResult::from_value(response))
@@ -113,100 +113,6 @@ impl RegistrationDiagnostic {
         };
         tracing::info!("Registration diagnostic complete");
         Ok(registration_report)
-    }
-
-    async fn setup(
-        network: &Network,
-        gateway_id: &str,
-        storage_path: Option<&PathBuf>,
-    ) -> anyhow::Result<DiagnosticSetup> {
-        let nym_urls = api_urls_to_urls(
-            &network
-                .nym_api_urls()
-                .ok_or(anyhow::anyhow!("No API URLs in the given network"))?,
-        )?;
-        let api_client = fronted_http_client(nym_urls.clone(), None, None, None).await?;
-        const DEFAULT_CONFIG: Config = Config {
-            min_mixnode_performance: 0,
-            min_gateway_performance: 0,
-            use_extended_topology: true,
-            ignore_egress_epoch_role: true,
-        };
-
-        let described_nodes = api_client.get_all_described_nodes().await?;
-        let gateway = described_nodes
-            .iter()
-            .find(|g| g.ed25519_identity_key().to_base58_string() == gateway_id)
-            .ok_or(anyhow::anyhow!("Gateway not found"))?
-            .clone();
-
-        let mut rng = rand::rngs::OsRng;
-        let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rng));
-
-        let gateway_version = gateway.version().to_string();
-        let authenticator_address = gateway
-            .description
-            .authenticator
-            .and_then(|a| Recipient::try_from_base58_string(&a.address).ok())
-            .ok_or(anyhow::anyhow!(
-                "Failed to get authenticator address for chosen gateway"
-            ))?;
-        let gateway_ip = *gateway
-            .description
-            .host_information
-            .ip_address
-            .first()
-            .ok_or(anyhow::anyhow!(
-                "Chosen gateway does not have announced IP addresses"
-            ))?;
-
-        let mut topology_provider = NymApiTopologyProvider::new(
-            DEFAULT_CONFIG,
-            nym_urls.into_iter().map(Into::into).collect(),
-            api_client,
-        );
-
-        let topology = topology_provider
-            .get_new_topology()
-            .await
-            .ok_or(anyhow::anyhow!("Failed to get topology"))?;
-
-        let bandwidth_provider = match storage_path {
-            Some(path) => Some(Self::setup_bandwidth_provider(network, path).await?),
-            None => None,
-        };
-
-        Ok(DiagnosticSetup {
-            topology_provider: HardcodedTopologyProvider::new(topology),
-            gateway_auth_address: authenticator_address,
-            gateway_version,
-            gateway_keypair,
-            gateway_ip,
-            bandwidth_provider,
-        })
-    }
-
-    async fn setup_bandwidth_provider(
-        network: &Network,
-        storage_path: &PathBuf,
-    ) -> anyhow::Result<Box<dyn BandwidthTicketProvider>> {
-        let config = NyxdClientConfig::try_from_nym_network_details(network.nym_network_details())?;
-        let nyxd_url = network
-            .nym_network_details()
-            .endpoints
-            .first()
-            .map(|ep| ep.nyxd_url())
-            .ok_or(anyhow::anyhow!("Invalid Nyxd URl"))?;
-
-        let credential_storage = StoragePaths::new_from_dir(storage_path)?
-            .persistent_credential_storage()
-            .await?;
-        let nyxd_client = NyxdClient::connect(config, nyxd_url.as_str())?;
-
-        Ok(Box::new(BandwidthController::new(
-            credential_storage,
-            nyxd_client,
-        )))
     }
 
     fn build_mixnet_client(
@@ -228,11 +134,7 @@ impl RegistrationDiagnostic {
 
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
-        gateway_auth_address: Recipient,
-        gateway_version: String,
-        gateway_keypair: Arc<x25519::KeyPair>,
-        gateway_ip: IpAddr,
-        bandwidth_provider: Box<dyn BandwidthTicketProvider>,
+        wg_registration_config: WgRegistrationConfig,
     ) -> Result<GatewayData, RegistrationError> {
         let address = *mixnet_client.nym_address();
 
@@ -242,15 +144,18 @@ impl RegistrationDiagnostic {
             mixnet_listener.subscribe(),
             mixnet_listener.mixnet_sender(),
             address,
-            gateway_auth_address,
-            gateway_version.into(),
-            gateway_keypair,
-            gateway_ip,
+            wg_registration_config.gateway_auth_address,
+            wg_registration_config.gateway_version.into(),
+            wg_registration_config.gateway_keypair,
+            wg_registration_config.gateway_ip,
         );
 
         // Embedded timeout
         let auth_res = auth_client
-            .register_wireguard(&*bandwidth_provider, TicketType::V1WireguardEntry)
+            .register_wireguard(
+                &*wg_registration_config.bandwidth_provider,
+                TicketType::V1WireguardEntry,
+            )
             .await;
 
         // Stopping mixnet client
@@ -273,6 +178,113 @@ fn debug_config() -> DebugConfig {
     debug_config.topology.minimum_gateway_performance = 0;
     debug_config
 }
+
+async fn setup_topology(network: &Network) -> anyhow::Result<HardcodedTopologyProvider> {
+    let nym_urls = api_urls_to_urls(
+        &network
+            .nym_api_urls()
+            .ok_or(anyhow::anyhow!("No API URLs in the given network"))?,
+    )?;
+    let api_client = fronted_http_client(nym_urls.clone(), None, None, None).await?;
+    const DEFAULT_CONFIG: Config = Config {
+        min_mixnode_performance: 0,
+        min_gateway_performance: 0,
+        use_extended_topology: true,
+        ignore_egress_epoch_role: true,
+    };
+
+    let mut topology_provider = NymApiTopologyProvider::new(
+        DEFAULT_CONFIG,
+        nym_urls.into_iter().map(Into::into).collect(),
+        api_client,
+    );
+
+    let topology = topology_provider
+        .get_new_topology()
+        .await
+        .ok_or(anyhow::anyhow!("Failed to get topology"))?;
+
+    Ok(HardcodedTopologyProvider::new(topology))
+}
+
+async fn setup_registration(
+    network: &Network,
+    gateway_id: &str,
+    storage_path: Option<&PathBuf>,
+) -> anyhow::Result<WgRegistrationConfig> {
+    let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
+
+    let nym_urls = api_urls_to_urls(
+        &network
+            .nym_api_urls()
+            .ok_or(anyhow::anyhow!("No API URLs in the given network"))?,
+    )?;
+    let api_client = fronted_http_client(nym_urls.clone(), None, None, None).await?;
+
+    let described_nodes = api_client.get_all_described_nodes().await?;
+    let gateway = described_nodes
+        .iter()
+        .find(|g| g.ed25519_identity_key().to_base58_string() == gateway_id)
+        .ok_or(anyhow::anyhow!("Gateway not found"))?
+        .clone();
+
+    let mut rng = rand::rngs::OsRng;
+    let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rng));
+
+    let gateway_version = gateway.version().to_string();
+    let authenticator_address = gateway
+        .description
+        .authenticator
+        .and_then(|a| Recipient::try_from_base58_string(&a.address).ok())
+        .ok_or(anyhow::anyhow!(
+            "Failed to get authenticator address for chosen gateway"
+        ))?;
+    let gateway_ip = *gateway
+        .description
+        .host_information
+        .ip_address
+        .first()
+        .ok_or(anyhow::anyhow!(
+            "Chosen gateway does not have announced IP addresses"
+        ))?;
+
+    let bandwidth_provider = setup_bandwidth_provider(network, storage_path).await?;
+
+    Ok(WgRegistrationConfig {
+        gateway_auth_address: authenticator_address,
+        gateway_version,
+        gateway_keypair,
+        gateway_ip,
+        bandwidth_provider,
+    })
+}
+
+async fn setup_bandwidth_provider(
+    network: &Network,
+    storage_path: &PathBuf,
+) -> anyhow::Result<Box<dyn BandwidthTicketProvider>> {
+    let config = NyxdClientConfig::try_from_nym_network_details(network.nym_network_details())?;
+    let nyxd_url = network
+        .nym_network_details()
+        .endpoints
+        .first()
+        .map(|ep| ep.nyxd_url())
+        .ok_or(anyhow::anyhow!("Invalid Nyxd URl"))?;
+
+    let storage_paths = StoragePaths::new_from_dir(storage_path)?;
+    if !storage_paths.credential_database_path.exists() {
+        return Err(anyhow::anyhow!("Credential database doesn't exists"));
+    }
+    let credential_storage = storage_paths.persistent_credential_storage().await?;
+    let nyxd_client = NyxdClient::connect(config, nyxd_url.as_str())?;
+
+    Ok(Box::new(BandwidthController::new(
+        credential_storage,
+        nyxd_client,
+    )))
+}
+
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistrationReport {
