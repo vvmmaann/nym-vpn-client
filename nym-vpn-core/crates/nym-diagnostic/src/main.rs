@@ -25,5 +25,10 @@ async fn main() -> anyhow::Result<()> {
             tracing::info!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
+        Command::Register(parameters) => {
+            let report = DiagnosticHandler::register(network, parameters).await;
+            tracing::info!("{}", serde_json::to_string_pretty(&report)?);
+            Ok(())
+        }
     }
 }

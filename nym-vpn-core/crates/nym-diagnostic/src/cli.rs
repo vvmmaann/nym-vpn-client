@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use clap::Parser;
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
@@ -46,6 +46,9 @@ impl CliArgs {
 pub enum Command {
     /// Run diagnostic
     Run(RunParams),
+
+    /// Register to a gateway for diagnostic. SUCCESSFUL RUNS ARE WASTING AN ENTRY TICKET
+    Register(RegisterParams),
 }
 
 #[derive(Debug, Clone, clap::Args)]
@@ -61,6 +64,17 @@ pub struct RunParams {
     /// Skip HTTP diagnostic
     #[clap(long, action = clap::ArgAction::SetTrue)]
     pub skip_http: bool,
+}
+
+#[derive(Debug, Clone, clap::Args)]
+pub struct RegisterParams {
+    /// Id of the gateway we are going to connect to.
+    #[arg(long)]
+    pub gateway: String,
+
+    /// Path to the storage dir
+    #[arg(long)]
+    pub storage_path: PathBuf,
 }
 
 // fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {

@@ -5,28 +5,29 @@ use nym_vpn_network_config::Network;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    cli::RunParams,
+    cli::{RegisterParams, RunParams},
     diagnostic::{
         dns::{CompleteDnsReport, DnsDiagnostic},
         gateway::{GatewayDiagnostic, GatewayReport},
         helpers::DiagnosticResult,
         http::{HttpDiagnostic, HttpReport},
+        registration::{RegistrationDiagnostic, RegistrationReport},
     },
 };
-pub struct DiagnosticHandler;
 
 mod dns;
 mod gateway;
 mod helpers;
 mod http;
+mod registration;
+
+pub struct DiagnosticHandler;
 
 impl DiagnosticHandler {
     pub async fn run(network: Network, parameters: RunParams) -> DiagnosticReport {
-        let api_hostnames = helpers::hostnames(&network);
-
         let dns_report = if !parameters.skip_dns {
             Some(
-                DnsDiagnostic::run_diagnostic(&api_hostnames)
+                DnsDiagnostic::run_diagnostic(&network)
                     .await
                     .inspect_err(|e| tracing::error!("Dns diagnostic error : {}", e.to_string())),
             )
@@ -58,6 +59,20 @@ impl DiagnosticHandler {
             http: http_report.map(Into::into),
             gateway: gateway_report.map(Into::into),
         }
+    }
+
+    pub async fn register(
+        network: Network,
+        parameters: RegisterParams,
+    ) -> DiagnosticResult<RegistrationReport> {
+        RegistrationDiagnostic::run_diagnostic(
+            &network,
+            &parameters.gateway,
+            &parameters.storage_path,
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Registration diagnostic error : {}", e))
+        .into()
     }
 }
 

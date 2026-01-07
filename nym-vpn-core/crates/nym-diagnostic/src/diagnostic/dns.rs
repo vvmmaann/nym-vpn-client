@@ -1,18 +1,20 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    net::IpAddr,
-    time::{Duration, Instant},
-};
+use nym_http_api_client::{HickoryDnsResolver, ResolveError};
+use nym_vpn_network_config::Network;
 
 use hickory_resolver::{
     Resolver, ResolverBuilder,
     config::{ResolverConfig, ResolverOpts},
     name_server::TokioConnectionProvider,
 };
-use nym_http_api_client::{HickoryDnsResolver, ResolveError};
 use serde::{Deserialize, Serialize};
+use std::{
+    iter,
+    net::IpAddr,
+    time::{Duration, Instant},
+};
 
 use crate::diagnostic::helpers::DiagnosticResult;
 
@@ -41,42 +43,45 @@ impl DnsDiagnostic {
         base.with_options(options).build()
     }
 
-    pub async fn run_diagnostic(hostnames: &[String]) -> anyhow::Result<CompleteDnsReport> {
+    pub async fn run_diagnostic(network: &Network) -> anyhow::Result<CompleteDnsReport> {
         tracing::info!("Running DNS diagnostic");
+
+        let hostnames = hostnames(network);
+
         tracing::debug!("Running DNS diagnostic on: {:?}", hostnames);
         tracing::debug!("System DNS diagnostic");
         let system_resolver = DnsDiagnostic::system()?;
-        let system = DnsReport::new(hostnames, &system_resolver).await;
+        let system = DnsReport::new(&hostnames, &system_resolver).await;
 
         tracing::debug!("Quad9 DNS diagnostic");
         let quad9_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9());
-        let quad9 = DnsReport::new(hostnames, &quad9_resolver).await;
+        let quad9 = DnsReport::new(&hostnames, &quad9_resolver).await;
 
         tracing::debug!("Quad9 DoH diagnostic");
         let quad9_doh_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9());
-        let quad9_doh = DnsReport::new(hostnames, &quad9_doh_resolver).await;
+        let quad9_doh = DnsReport::new(&hostnames, &quad9_doh_resolver).await;
 
         tracing::debug!("Quad9 DoT diagnostic");
         let quad9_dot_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9());
-        let quad9_dot = DnsReport::new(hostnames, &quad9_dot_resolver).await;
+        let quad9_dot = DnsReport::new(&hostnames, &quad9_dot_resolver).await;
 
         tracing::debug!("CloudFlare DNS diagnostic");
         let cloudflare_resolver = DnsDiagnostic::from_config(ResolverConfig::cloudflare());
-        let cloudflare = DnsReport::new(hostnames, &cloudflare_resolver).await;
+        let cloudflare = DnsReport::new(&hostnames, &cloudflare_resolver).await;
 
         tracing::debug!("CloudFlare DoH diagnostic");
         let cloudflare_doh_resolver = DnsDiagnostic::from_config(ResolverConfig::cloudflare());
-        let cloudflare_doh = DnsReport::new(hostnames, &cloudflare_doh_resolver).await;
+        let cloudflare_doh = DnsReport::new(&hostnames, &cloudflare_doh_resolver).await;
 
         tracing::debug!("CloudFlare DoT diagnostic");
         let cloudflare_dot_resolver = DnsDiagnostic::from_config(ResolverConfig::cloudflare());
-        let cloudflare_dot = DnsReport::new(hostnames, &cloudflare_dot_resolver).await;
+        let cloudflare_dot = DnsReport::new(&hostnames, &cloudflare_dot_resolver).await;
 
         tracing::debug!("Nym custom DNS diagnostic");
         let mut nym_resolver = HickoryDnsResolver::default();
         nym_resolver.disable_system_fallback();
         nym_resolver.set_static_fallbacks(Default::default());
-        let nym = DnsReport::new(hostnames, &nym_resolver).await;
+        let nym = DnsReport::new(&hostnames, &nym_resolver).await;
 
         Ok(CompleteDnsReport {
             system,
@@ -89,6 +94,26 @@ impl DnsDiagnostic {
             nym,
         })
     }
+}
+
+pub fn hostnames(network: &Network) -> Vec<String> {
+    let api_urls = network
+        .nym_api_urls_as_urls()
+        .into_iter()
+        .chain(network.nym_vpn_api_urls_as_urls())
+        .flatten()
+        .chain(iter::once(network.nyxd_url.clone()));
+
+    // Convert str urls to hostnames
+    api_urls
+        .filter_map(|url| match url.host_str() {
+            Some(host) => Some(host.to_string()),
+            None => {
+                tracing::warn!("URL has no host component: {}", url);
+                None
+            }
+        })
+        .collect()
 }
 
 // QoL trait to accommodate both our custom resolver and hickory ones

@@ -14,11 +14,18 @@ workspace = true
 
 
 [dependencies]
+nym-authenticator-client.workspace = true
+nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
+nym-client-core.workspace = true
+nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
 nym-gateway-directory.workspace = true
 nym-gateway-requests.workspace = true
 nym-http-api-client.workspace = true
+nym-registration-common.workspace = true
+nym-sdk.workspace = true
+nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
     "serde",
@@ -27,16 +34,19 @@ nym-vpn-lib-types = { workspace = true, features = [
 nym-vpn-api-client.workspace = true
 nym-vpn-lib.workspace = true
 nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
 
 anyhow.workspace = true
 async-trait.workspace = true
 clap.workspace = true
 futures.workspace = true
 hickory-resolver.workspace = true
+rand.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net"] }
+tokio-util.workspace = true
 tokio-tungstenite.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

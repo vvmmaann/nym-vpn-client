@@ -1,29 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_network_config::Network;
 use serde::{Deserialize, Serialize};
-use std::iter;
-
-pub fn hostnames(network: &Network) -> Vec<String> {
-    let api_urls = network
-        .nym_api_urls_as_urls()
-        .into_iter()
-        .chain(network.nym_vpn_api_urls_as_urls())
-        .flatten()
-        .chain(iter::once(network.nyxd_url.clone()));
-
-    // Convert str urls to hostnames
-    api_urls
-        .filter_map(|url| match url.host_str() {
-            Some(host) => Some(host.to_string()),
-            None => {
-                tracing::warn!("URL has no host component: {}", url);
-                None
-            }
-        })
-        .collect()
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiagnosticResult<T> {

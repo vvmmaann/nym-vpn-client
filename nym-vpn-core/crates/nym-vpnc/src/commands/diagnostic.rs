@@ -15,5 +15,9 @@ pub(crate) async fn execute(subcommand: Command, mut rpc_client: RpcClient) -> R
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
+        Command::Register(_params) => {
+            // SW todo later?
+            unimplemented!()
+        }
     }
 }
