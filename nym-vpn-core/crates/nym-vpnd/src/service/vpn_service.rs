@@ -233,6 +233,9 @@ pub struct NymVpnService {
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
 
+    // Topology service handle
+    topology_service_handle: nym_vpn_lib::VpnTopologyServiceHandle,
+
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
 
@@ -495,7 +498,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
-            topology_service,
+            topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
             wireguard_keys_db,
@@ -524,6 +527,7 @@ impl NymVpnService {
             account_controller_handle,
             statistics_controller_handle,
             topology_service_join_handle,
+            topology_service_handle: topology_service,
             config_manager,
             command_sender,
             event_receiver,
@@ -729,17 +733,18 @@ impl NymVpnService {
                 tracing::info!("Network environment updated");
                 let _ = self.network_tx.send_replace(new_network.clone());
 
-                // Clear gateway cache and update gateway client for new environment
+                // Clear gateway cache and topology cache, update gateway client for new environment
                 let gateway_cache_handle = self.gateway_cache_handle.clone();
+                let topology_service_handle = self.topology_service_handle.clone();
                 let user_agent = self.user_agent.clone();
                 let network_name = new_network.nym_network.network.network_name.clone();
                 tokio::spawn(async move {
                     tracing::info!(
                         network = %network_name,
-                        "Updating gateway cache for network environment change"
+                        "Updating gateway cache and topology cache for network environment change"
                     );
 
-                    // Clear the cache first
+                    // Clear the gateway cache first
                     if let Err(e) = gateway_cache_handle.clear_cache() {
                         tracing::warn!(
                             network = %network_name,
@@ -747,6 +752,9 @@ impl NymVpnService {
                             "Failed to clear gateway cache on environment change"
                         );
                     }
+
+                    // Clear the topology cache
+                    topology_service_handle.clear_cache().await;
 
                     // Create new gateway client for the new environment
                     let nyxd_url = new_network.nyxd_url();
@@ -812,7 +820,7 @@ impl NymVpnService {
                     } else {
                         tracing::info!(
                             network = %network_name,
-                            "Gateway cache successfully updated for new environment"
+                            "Gateway cache and topology cache successfully updated for new environment"
                         );
                     }
                 });

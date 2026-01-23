@@ -179,6 +179,7 @@ pub(super) async fn start_state_machine(
 
     let discovery_watch_token = shutdown_token.child_token();
     let user_agent_clone = user_agent.clone();
+    let topology_service_clone = topology_service.clone();
     let discovery_watch_handle = tokio::spawn(async move {
         loop {
             tokio::select! {
@@ -192,14 +193,14 @@ pub(super) async fn start_state_machine(
                             );
                             let _ = network_tx.send_replace(new_network.clone());
 
-                            // Refresh gateway cache for new environment
+                            // Refresh gateway cache and topology cache for new environment
                             if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
                                 tracing::info!(
                                     network = %network_name,
-                                    "Updating gateway cache for network environment change"
+                                    "Updating gateway cache and topology cache for network environment change"
                                 );
 
-                                // Clear the cache
+                                // Clear the gateway cache
                                 if let Err(e) = cache_handle.clear_cache() {
                                     tracing::warn!(
                                         network = %network_name,
@@ -207,6 +208,9 @@ pub(super) async fn start_state_machine(
                                         "Failed to clear gateway cache on environment change"
                                     );
                                 }
+
+                                // Clear the topology cache
+                                topology_service_clone.clear_cache().await;
 
                                 // Create new gateway client for the new environment
                                 let nyxd_url = new_network.nyxd_url();
@@ -273,7 +277,7 @@ pub(super) async fn start_state_machine(
                                 } else {
                                     tracing::info!(
                                         network = %network_name,
-                                        "Gateway cache successfully updated for new environment"
+                                        "Gateway cache and topology cache successfully updated for new environment"
                                     );
                                 }
                             }
@@ -300,7 +304,7 @@ pub(super) async fn start_state_machine(
         account_controller_state,
         statistics_event_sender.clone(),
         gateway_cache_handle,
-        topology_service,
+        topology_service.clone(),
         connectivity_handle,
         discovery_refresher_command_tx,
         wireguard_key_db,
@@ -325,6 +329,7 @@ pub(super) async fn start_state_machine(
         command_sender,
         statistics_event_sender,
         topology_service_handle,
+        topology_service,
         shutdown_token,
     })
 }
@@ -337,6 +342,8 @@ pub(super) struct StateMachineHandle {
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
     statistics_event_sender: StatisticsSender,
     topology_service_handle: JoinHandle<()>,
+    #[allow(dead_code)]
+    topology_service: nym_vpn_lib::VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
 }
 
