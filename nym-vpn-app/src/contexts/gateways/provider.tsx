@@ -20,66 +20,69 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   const { initialized, daemonStatus, vpnMode } = useMainState();
 
+  const fetchGateways = async (nodeType: GatewayType) => {
+    return Promise.resolve();
+  }
   // use cached values if any, otherwise query from daemon
-  const fetchGateways = useCallback(
-    async (nodeType: GatewayType) => {
-      const { loading } = getStateProps(nodeType);
-      if (state[loading]) {
-        return;
-      }
-      dispatch({
-        type: 'set-gateways-loading',
-        payload: {
-          type: nodeType,
-          loading: true,
-        },
-      });
-      const cacheKey = gwTypeToCacheKey(nodeType);
-      // first try to load from cache
-      let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
+  // const fetchGateways = useCallback(
+  //   async (nodeType: GatewayType) => {
+  //     const { loading } = getStateProps(nodeType);
+  //     if (state[loading]) {
+  //       return;
+  //     }
+  //     dispatch({
+  //       type: 'set-gateways-loading',
+  //       payload: {
+  //         type: nodeType,
+  //         loading: true,
+  //       },
+  //     });
+  //     const cacheKey = gwTypeToCacheKey(nodeType);
+  //     // first try to load from cache
+  //     let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
 
-      // fallback to daemon query
-      if (!gateways || daemonStatus === 'down') {
-        console.info(`fetching gateways for ${nodeType}`);
-        try {
-          gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
-            nodeType,
-          });
-          await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
-        } catch (e) {
-          if (nodeType === 'mx-entry') {
-            // this also reset loading state
-            dispatch({
-              type: 'set-gateways-error',
-              payload: {
-                type: nodeType,
-                error: e as BackendError,
-              },
-            });
-          }
-        }
-      }
-      if (!gateways) {
-        console.info(`no gateways found for ${nodeType}`);
-        gateways = [];
-      }
-      dispatch({
-        type: 'set-gateways',
-        payload: {
-          type: nodeType,
-          gateways,
-        },
-      });
-      dispatch({
-        type: 'reset-loading-and-error',
-        payload: {
-          type: nodeType,
-        },
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [daemonStatus, state.mxEntryLoading, state.mxExitLoading, state.wgLoading],
-  );
+  //     // fallback to daemon query
+  //     if (!gateways || daemonStatus === 'down') {
+  //       console.info(`fetching gateways for ${nodeType}`);
+  //       try {
+  //         gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
+  //           nodeType,
+  //         });
+  //         await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
+  //       } catch (e) {
+  //         if (nodeType === 'mx-entry') {
+  //           // this also reset loading state
+  //           dispatch({
+  //             type: 'set-gateways-error',
+  //             payload: {
+  //               type: nodeType,
+  //               error: e as BackendError,
+  //             },
+  //           });
+  //         }
+  //       }
+  //     }
+  //     if (!gateways) {
+  //       console.info(`no gateways found for ${nodeType}`);
+  //       gateways = [];
+  //     }
+  //     dispatch({
+  //       type: 'set-gateways',
+  //       payload: {
+  //         type: nodeType,
+  //         gateways,
+  //       },
+  //     });
+  //     dispatch({
+  //       type: 'reset-loading-and-error',
+  //       payload: {
+  //         type: nodeType,
+  //       },
+  //     });
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [daemonStatus, state.mxEntryLoading, state.mxExitLoading, state.wgLoading],
+  // );
 
   const findGateway = (
     id: string,

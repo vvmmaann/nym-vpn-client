@@ -184,6 +184,22 @@ export function reducer(state: AppState, action: StateAction): AppState {
           },
         };
       }
+      if (action.status === 'auth-denied') {
+        return {
+          ...state,
+          daemonStatus: action.status,
+          state: 'unknown',
+          tunnel: null,
+          progressMessages: [],
+          tunnelConnectedAt: null,
+          tunnelError: null,
+          connectingState: null,
+          error: {
+            key: 'auth-denied',
+            message: 'Authentication required',
+          },
+        };
+      }
       return {
         ...state,
         daemonStatus: action.status,

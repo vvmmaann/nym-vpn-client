@@ -208,7 +208,7 @@ export async function initFirstBatch(
     getDomainFrontingRq,
   ];
 
-  if (initState.vpnd !== 'down') {
+  if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
     requests = [
       initStateRq,
       getStoredAccountRq,
@@ -274,7 +274,7 @@ export async function initSecondBatch(
   };
 
   let requests: TauriReq<never>[] = [getAutostart, getDefaultDnsRq];
-  if (initState.vpnd !== 'down') {
+  if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
     requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
   }
 

@@ -160,6 +160,17 @@ impl AppState {
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
     }
+
+    #[instrument(skip_all)]
+    pub async fn vpnd_auth_denied(app: &AppHandle) {
+        let app_state = app.state::<SharedAppState>();
+        let mut state = app_state.lock().await;
+        if state.vpnd_status != VpndStatus::AuthDenied {
+            info!("vpnd AUTH DENIED");
+            state.vpnd_status = VpndStatus::AuthDenied;
+            app.emit_vpnd_status(state.vpnd_status.clone());
+        }
+    }
 }
 
 impl NetworkCompat {

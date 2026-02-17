@@ -14,6 +14,7 @@ import {
 } from '../../contexts';
 import {
   BackendError,
+  DaemonStatus,
   StateDispatch,
   isCountry,
   isGateway,
@@ -34,6 +35,10 @@ const devMode = window._APP.devMode;
 const os = type();
 let compatChecked = false;
 
+function isDaemonUnavailable(status: DaemonStatus): boolean {
+  return status === 'down' || status === 'auth-denied';
+}
+
 function Home() {
   const {
     state,
@@ -46,14 +51,18 @@ function Home() {
     account,
     networkCompat,
   } = useMainState();
+
+  console.log('daemonStatus', daemonStatus);
+  
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const { lookupGw } = useGateways();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
+  const daemonUnavailable = isDaemonUnavailable(daemonStatus);
   const needAPlan =
-    daemonStatus !== 'down' &&
+    !daemonUnavailable &&
     state === 'disconnected' &&
     account &&
     (accountState === 'no-subscription' ||
@@ -244,14 +253,14 @@ function Home() {
                   gatewayId={entryGwId}
                   onClick={() => goToNodeList('entry')}
                   nodeHop="entry"
-                  disabled={daemonStatus === 'down'}
+                  disabled={daemonUnavailable}
                 />
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
                   onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
-                  disabled={daemonStatus === 'down'}
+                  disabled={daemonUnavailable}
                 />
               </div>
             </div>
@@ -259,7 +268,7 @@ function Home() {
           <Button
             onClick={handleClick}
             color={getButtonColor()}
-            disabled={loading || daemonStatus === 'down' || state === 'offline'}
+            disabled={loading || daemonUnavailable || state === 'offline'}
             spinner={loading}
             className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
             textSize="base"
@@ -268,6 +277,19 @@ function Home() {
           >
             {getButtonText()}
           </Button>
+          {daemonStatus === 'auth-denied' && (
+            <Button
+              color="cornflower"
+              onClick={() => {
+                invoke('retry_authentication').catch((e: unknown) => {
+                  console.error('retry_authentication failed', e);
+                });
+              }}
+              data-testid="home-authenticate-button"
+            >
+              {t('authenticate', { ns: 'home' })}
+            </Button>
+          )}
         </div>
       </motion.div>
     </>

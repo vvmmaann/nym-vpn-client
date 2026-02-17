@@ -78,6 +78,7 @@ export function useTauriEvents(
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
+      console.log('tunnel state update', event);
       updateTunnel(event.payload.state, dispatch);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);

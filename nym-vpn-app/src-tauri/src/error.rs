@@ -94,7 +94,7 @@ impl From<VpndError> for BackendError {
         match error {
             VpndError::AuthenticationRequired => BackendError::new(
                 "not authenticated with the daemon",
-                ErrorKey::NotConnectedToDaemon,
+                ErrorKey::AuthDenied,
             ),
             VpndError::RpcClient(e) => {
                 BackendError::new(&format!("rpc client error: {e}"), ErrorKey::VpndClient)
@@ -124,6 +124,8 @@ pub enum ErrorKey {
     /// Happens when the app is not connected to a running daemon
     /// and attempts to make an RPC call
     NotConnectedToDaemon,
+    /// Daemon requires authentication that was denied or cancelled
+    AuthDenied,
     // Various mixnet events that should be mapped to errors
     EntryGwDown,
     ExitGwDownIpv4,

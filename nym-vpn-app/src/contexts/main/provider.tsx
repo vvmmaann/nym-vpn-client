@@ -53,46 +53,48 @@ function MainStateProvider({ children, init }: Props) {
     });
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch(dispatch, init).then(() => {
-      console.log('init of 1st batch done');
-      dispatch({ type: 'init-done' });
-    });
+    // initFirstBatch(dispatch, init).then(() => {
+    //   console.log('init of 1st batch done');
+    //   dispatch({ type: 'init-done' });
+    // });
 
-    // this second batch is not needed for the app to be fully
-    // functional, and continue loading in the background
-    initSecondBatch(dispatch, init).then(() => {
-      console.log('init of 2nd batch done');
-    });
+    // // this second batch is not needed for the app to be fully
+    // // functional, and continue loading in the background
+    // initSecondBatch(dispatch, init).then(() => {
+    //   console.log('init of 2nd batch done');
+    // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (
-      systemMessageInit ||
-      init.vpnd === 'down' ||
-      state.daemonStatus === 'down'
-    ) {
-      return;
-    }
-    systemMessageInit = true;
-    const querySystemMessages = async () => {
-      try {
-        const messages = await invoke<SystemMessage[]>('system_messages');
-        if (messages.length > 0) {
-          console.info('system messages', messages);
-          push({
-            message: messages
-              .map(({ name, message }) => `${name}: ${message}`)
-              .join('\n'),
-            close: true,
-            duration: 10000,
-            type: 'warn',
-          });
-        }
-      } catch {}
-    };
-    querySystemMessages();
-  }, [init.vpnd, push, state.daemonStatus]);
+  // useEffect(() => {
+  //   if (
+  //     systemMessageInit ||
+  //     init.vpnd === 'down' ||
+  //     init.vpnd === 'authDenied' ||
+  //     state.daemonStatus === 'down' ||
+  //     state.daemonStatus === 'auth-denied'
+  //   ) {
+  //     return;
+  //   }
+  //   systemMessageInit = true;
+  //   const querySystemMessages = async () => {
+  //     try {
+  //       const messages = await invoke<SystemMessage[]>('system_messages');
+  //       if (messages.length > 0) {
+  //         console.info('system messages', messages);
+  //         push({
+  //           message: messages
+  //             .map(({ name, message }) => `${name}: ${message}`)
+  //             .join('\n'),
+  //           close: true,
+  //           duration: 10000,
+  //           type: 'warn',
+  //         });
+  //       }
+  //     } catch {}
+  //   };
+  //   querySystemMessages();
+  // }, [init.vpnd, push, state.daemonStatus]);
 
   return (
     <MainStateContext.Provider value={state}>

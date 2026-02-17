@@ -74,10 +74,21 @@ export function daemonStatusUpdate(
       type: 'error',
     });
   }
+  if (status === 'authDenied') {
+    push({
+      id: 'daemon-auth-denied',
+      message: i18n.t('daemon-auth-denied', {
+        ns: 'notifications',
+      }),
+      close: true,
+      duration: 6000,
+      type: 'warn',
+    });
+  }
 }
 
 export async function networkEnvChanged(status: VpndStatus) {
-  if (status === 'down') {
+  if (status === 'down' || status === 'authDenied') {
     return false;
   }
   const prevEnv = await kvGet<NetworkEnv>('last-network-env');
@@ -106,6 +117,9 @@ function vpndStatusToState(status: VpndStatus): DaemonStatus {
   }
   if (isVpndNonCompat(status)) {
     return 'non-compat';
+  }
+  if (status === 'authDenied') {
+    return 'auth-denied';
   }
   return 'down';
 }
