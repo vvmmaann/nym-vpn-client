@@ -14,7 +14,7 @@ pub struct VpndInfo {
     pub git_commit: String,
 }
 
-#[derive(Serialize, Default, Clone, Debug, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub enum VpndStatus {
@@ -28,10 +28,24 @@ pub enum VpndStatus {
         requirement: String,
     },
     /// The daemon is not serving or running
-    #[default]
+    // #[default]
     Down,
     /// The daemon requires authentication that was denied or cancelled
     AuthDenied,
+}
+
+#[cfg(target_os = "linux")]
+impl Default for VpndStatus {
+    fn default() -> Self {
+        VpndStatus::AuthDenied
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl Default for VpndStatus {
+    fn default() -> Self {
+        VpndStatus::Down
+    }
 }
 
 impl From<VpnServiceInfo> for VpndInfo {

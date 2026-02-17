@@ -106,6 +106,9 @@ dayjs.extend(duration);
   const config = await invoke<VpndConfig | undefined>('get_vpn_config');
   console.log('config', config);
 
+  const dupa = await invoke('daemon_status');
+  console.log('dupa', dupa);
+
   // pre-get and prepare some early stage state
   const initState: InitState = {
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',

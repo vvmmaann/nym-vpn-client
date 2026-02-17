@@ -215,6 +215,10 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ipv6Support: !action.config.disableIpv6,
         allowLan: action.config.allowLan,
         enableLewesProtocol: action.config.enableLewesProtocol,
+        customDnsEnabled: action.config.enableCustomDns,
+        customDns: action.config.customDns ?? [],
+        mixnetTrafficConfig: action.config.mixnetTraffic,
+        mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
       };
 
     case 'set-daemon-info':

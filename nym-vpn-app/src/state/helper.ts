@@ -41,6 +41,7 @@ export function daemonStatusUpdate(
   dispatch: StateDispatch,
   push: (notification: Notification) => void,
 ) {
+  console.log('daemonStatusUpdate', status);
   dispatch({
     type: 'set-daemon-status',
     status: vpndStatusToState(status),

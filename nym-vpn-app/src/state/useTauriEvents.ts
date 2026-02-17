@@ -122,7 +122,7 @@ export function useTauriEvents(
 
   const registerVpnConfigListener = useCallback(() => {
     return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
-      console.log('tunnel config update');
+      console.log('tunnel config update', payload);
       dispatch({
         type: 'update-tunnel-config',
         config: payload,

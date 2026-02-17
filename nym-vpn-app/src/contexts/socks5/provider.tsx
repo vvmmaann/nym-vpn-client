@@ -6,6 +6,7 @@ import type {
   Socks5Settings,
   Socks5Status,
 } from '../../types';
+import { useMainState } from '../main';
 import { Socks5Context } from './context';
 
 export type Socks5ProviderProps = {
@@ -20,6 +21,7 @@ let initialized = false;
 export function Socks5Provider({ children }: Socks5ProviderProps) {
   const [status, setStatus] = useState<Socks5Status | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { daemonStatus } = useMainState();
 
   // update status state
   const refresh = useCallback(async () => {
@@ -90,7 +92,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
 
   // initial load and periodic polling
   useEffect(() => {
-    if (initialized) {
+    if (initialized || daemonStatus === 'auth-denied') {
       return;
     }
     initialized = true;

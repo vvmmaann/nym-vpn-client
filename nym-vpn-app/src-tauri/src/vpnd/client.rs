@@ -127,6 +127,9 @@ impl VpndClient {
         Ok(client)
     }
 
+    // pub fn get_connection_state(&self) -> ConnectionState {
+    //     self.rpc_client.lock().unwrap().clone()
+    // }
 
     pub async fn retry_daemon_authentication(&self) {
         let mut guard = self.rpc_client.lock().await;

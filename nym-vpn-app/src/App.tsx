@@ -72,7 +72,7 @@ function App({ init }: { init: InitState }) {
           <MainStateProvider init={init}>
             <GatewaysProvider>
               <NodeListStateProvider>
-                {/* <Socks5Provider> */}
+                <Socks5Provider>
                   <ThemeSetter>
                     <DialogProvider>
                       <TopBarProvider>
@@ -82,7 +82,7 @@ function App({ init }: { init: InitState }) {
                       </TopBarProvider>
                     </DialogProvider>
                   </ThemeSetter>
-                {/* </Socks5Provider> */}
+                </Socks5Provider>
               </NodeListStateProvider>
             </GatewaysProvider>
           </MainStateProvider>

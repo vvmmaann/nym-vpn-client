@@ -10,6 +10,7 @@ import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
 let initialized = false;
+let batchesInitialized = false;
 let systemMessageInit = false;
 
 type Props = {
@@ -35,12 +36,19 @@ function MainStateProvider({ children, init }: Props) {
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
   });
 
+  console.log('init', { ...init });
+  console.log('state', { ...state });
+
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
 
   // initialize app state
   useEffect(() => {
+    // debugger;
+
+    // if (initialized || state.daemonStatus === 'down') {
     if (initialized) {
+      console.log('initialized, skipping initialization');
       return;
     }
     initialized = true;
@@ -51,8 +59,12 @@ function MainStateProvider({ children, init }: Props) {
         await CCache.clear();
       }
     });
+    if (init.vpnd === 'authDenied') {
+      console.log('auth denied, skipping initialization');
+      return;
+    }
 
-    // this first batch is needed to ensure the app is fully initialized and ready
+    // // this first batch is needed to ensure the app is fully initialized and ready
     // initFirstBatch(dispatch, init).then(() => {
     //   console.log('init of 1st batch done');
     //   dispatch({ type: 'init-done' });
@@ -66,35 +78,64 @@ function MainStateProvider({ children, init }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // useEffect(() => {
-  //   if (
-  //     systemMessageInit ||
-  //     init.vpnd === 'down' ||
-  //     init.vpnd === 'authDenied' ||
-  //     state.daemonStatus === 'down' ||
-  //     state.daemonStatus === 'auth-denied'
-  //   ) {
-  //     return;
-  //   }
-  //   systemMessageInit = true;
-  //   const querySystemMessages = async () => {
-  //     try {
-  //       const messages = await invoke<SystemMessage[]>('system_messages');
-  //       if (messages.length > 0) {
-  //         console.info('system messages', messages);
-  //         push({
-  //           message: messages
-  //             .map(({ name, message }) => `${name}: ${message}`)
-  //             .join('\n'),
-  //           close: true,
-  //           duration: 10000,
-  //           type: 'warn',
-  //         });
-  //       }
-  //     } catch {}
-  //   };
-  //   querySystemMessages();
-  // }, [init.vpnd, push, state.daemonStatus]);
+  useEffect(() => {
+    // debugger;
+    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+      console.log(
+        'daemonStatus is down or auth-denied, skipping initialization',
+      );
+      return;
+    }
+    if (batchesInitialized) {
+      console.log('batches already initialized, skipping initialization');
+      return;
+    }
+    batchesInitialized = true;
+
+    // this first batch is needed to ensure the app is fully initialized and ready
+    initFirstBatch(dispatch, init).then(() => {
+      console.log('init of 1st batch done');
+      dispatch({ type: 'init-done' });
+    });
+
+    // this second batch is not needed for the app to be fully
+    // functional, and continue loading in the background
+    initSecondBatch(dispatch, init).then(() => {
+      console.log('init of 2nd batch done');
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.daemonStatus]);
+
+  useEffect(() => {
+    if (
+      systemMessageInit ||
+      init.vpnd === 'down' ||
+      init.vpnd === 'authDenied' ||
+      state.daemonStatus === 'down' ||
+      state.daemonStatus === 'auth-denied'
+    ) {
+      return;
+    }
+    systemMessageInit = true;
+    const querySystemMessages = async () => {
+      try {
+        const messages = await invoke<SystemMessage[]>('system_messages');
+        if (messages.length > 0) {
+          console.info('system messages', messages);
+          push({
+            message: messages
+              .map(({ name, message }) => `${name}: ${message}`)
+              .join('\n'),
+            close: true,
+            duration: 10000,
+            type: 'warn',
+          });
+        }
+      } catch {}
+    };
+    querySystemMessages();
+  }, [init.vpnd, push, state.daemonStatus]);
 
   return (
     <MainStateContext.Provider value={state}>

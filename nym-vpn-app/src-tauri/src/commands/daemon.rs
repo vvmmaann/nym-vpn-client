@@ -31,7 +31,7 @@ pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
 ) -> Result<VpndStatus, BackendError> {
     let status = app_state.lock().await.vpnd_status.clone();
-    debug!("daemon status: {:?}", status);
+    info!("daemon status: {:?}", status);
     Ok(status)
 }
 
@@ -118,7 +118,6 @@ pub async fn delete_logs(vpnd: State<'_, VpndClient>) -> Result<(), BackendError
         })
         .map_err(|e| e.into())
 }
-
 
 #[instrument(skip_all)]
 #[tauri::command]

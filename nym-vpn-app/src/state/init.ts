@@ -41,6 +41,7 @@ export async function initFirstBatch(
   dispatch: StateDispatch,
   initState: InitState,
 ) {
+  // debugger;
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
@@ -208,16 +209,16 @@ export async function initFirstBatch(
     getDomainFrontingRq,
   ];
 
-  if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
-    requests = [
-      initStateRq,
-      getStoredAccountRq,
-      getAccountStateRq,
-      getAccountModeRq,
-      getFeatureFlagsRq,
-      ...requests,
-    ];
-  }
+  requests = [
+    initStateRq,
+    getStoredAccountRq,
+    getAccountStateRq,
+    getAccountModeRq,
+    getFeatureFlagsRq,
+    ...requests,
+  ];
+  // if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
+  // }
 
   // fire all requests concurrently
   await fireRequests(requests);
@@ -274,9 +275,9 @@ export async function initSecondBatch(
   };
 
   let requests: TauriReq<never>[] = [getAutostart, getDefaultDnsRq];
-  if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
-    requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
-  }
+  requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
+  // if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
+  // }
 
   await fireRequests(requests);
 }

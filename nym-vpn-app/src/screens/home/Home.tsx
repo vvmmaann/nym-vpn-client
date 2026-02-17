@@ -53,7 +53,7 @@ function Home() {
   } = useMainState();
 
   console.log('daemonStatus', daemonStatus);
-  
+
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const { lookupGw } = useGateways();
@@ -277,6 +277,15 @@ function Home() {
           >
             {getButtonText()}
           </Button>
+          <button
+            onClick={() => {
+              invoke('daemon_status').then((result) => {
+                console.log(result);
+              });
+            }}
+          >
+            get daemon status
+          </button>
           {daemonStatus === 'auth-denied' && (
             <Button
               color="cornflower"

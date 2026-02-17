@@ -25,6 +25,7 @@ type NavLocation = {
   rightIcon?: string;
   rightComponent?: ReactNode;
   rightIconClassName?: string;
+  rightIconDisabled?: boolean;
   handleRightNav?: () => void;
   noBackground?: boolean;
 };
@@ -37,7 +38,7 @@ export default function TopBar() {
   const { t } = useTranslation();
   const os = type();
 
-  const { uiTheme } = useMainState();
+  const { uiTheme, daemonStatus } = useMainState();
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
 
@@ -70,6 +71,17 @@ export default function TopBar() {
       '/': {
         title: getMainScreenTitle(),
         rightIcon: 'settings',
+        rightIconDisabled: daemonStatus === 'auth-denied',
+        // rightComponent: (
+        //   <ButtonIcon
+        //     icon="settings"
+        //     disabled={daemonStatus === 'auth-denied'}
+        //     onClick={currentNavLocation.handleRightNav!}
+        //     color="chalk"
+        //     className="mx-4"
+        //     noDefaultSize
+        //   />
+        // ),
         handleRightNav: () => {
           navigate(routes.settings);
         },
@@ -282,7 +294,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
+  }, [t, navigate, getMainScreenTitle, show, uiTheme, daemonStatus]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -375,6 +387,7 @@ export default function TopBar() {
               color="chalk"
               className="mx-4"
               noDefaultSize
+              disabled={currentNavLocation.rightIconDisabled}
             />
           )}
         </motion.div>
