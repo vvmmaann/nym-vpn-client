@@ -154,7 +154,7 @@ function ContinuousTrafficSlider({
                 `mixnet-tuning.continuous-traffic.continuous.${item.label}.label`,
               )}
             </span>
-            <span className="">{item.speed}</span>
+            <span className="whitespace-nowrap">{item.speed}</span>
           </button>
         ))}
       />
