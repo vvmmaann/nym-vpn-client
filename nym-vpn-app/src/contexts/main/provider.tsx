@@ -44,9 +44,6 @@ function MainStateProvider({ children, init }: Props) {
 
   // initialize app state
   useEffect(() => {
-    // debugger;
-
-    // if (initialized || state.daemonStatus === 'down') {
     if (initialized) {
       console.log('initialized, skipping initialization');
       return;
@@ -59,27 +56,11 @@ function MainStateProvider({ children, init }: Props) {
         await CCache.clear();
       }
     });
-    if (init.vpnd === 'authDenied') {
-      console.log('auth denied, skipping initialization');
-      return;
-    }
 
-    // // this first batch is needed to ensure the app is fully initialized and ready
-    // initFirstBatch(dispatch, init).then(() => {
-    //   console.log('init of 1st batch done');
-    //   dispatch({ type: 'init-done' });
-    // });
-
-    // // this second batch is not needed for the app to be fully
-    // // functional, and continue loading in the background
-    // initSecondBatch(dispatch, init).then(() => {
-    //   console.log('init of 2nd batch done');
-    // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // debugger;
     if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
       console.log(
         'daemonStatus is down or auth-denied, skipping initialization',
