@@ -228,6 +228,7 @@ function Home() {
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
+        <h1>Daemon Status: {daemonStatus}</h1>
         <div
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"
