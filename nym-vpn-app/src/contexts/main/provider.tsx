@@ -9,7 +9,7 @@ import { CCache } from '../../cache';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
-let initialized = false;
+// let initialized = false;
 let batchesInitialized = false;
 let systemMessageInit = false;
 
@@ -44,11 +44,11 @@ function MainStateProvider({ children, init }: Props) {
 
   // initialize app state
   useEffect(() => {
-    if (initialized) {
-      console.log('initialized, skipping initialization');
-      return;
-    }
-    initialized = true;
+    // if (initialized) {
+    //   console.log('initialized, skipping initialization');
+    //   return;
+    // }
+    // initialized = true;
     daemonStatusUpdate(init.vpnd, dispatch, push);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {

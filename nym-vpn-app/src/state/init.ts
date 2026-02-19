@@ -42,6 +42,7 @@ export async function initFirstBatch(
   initState: InitState,
 ) {
   // debugger;
+  console.log('initFirstBatch', { ...initState });
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
@@ -228,6 +229,7 @@ export async function initSecondBatch(
   dispatch: StateDispatch,
   initState: InitState,
 ) {
+  console.log('initSecondBatch', { ...initState });
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
