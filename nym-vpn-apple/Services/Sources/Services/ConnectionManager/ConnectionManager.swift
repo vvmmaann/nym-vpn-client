@@ -144,11 +144,19 @@ import GRPCManager
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
+        await disconnectAndWaitForDisconnected()
+#if os(iOS)
+        resetVpnProfile()
+#endif
+    }
+
+    /// Disconnect and wait for disconnected status
+    public func disconnectAndWaitForDisconnected() async {
         guard currentTunnelStatus != .disconnected else { return }
 #if os(iOS)
         try? await disconnectActiveTunnel()
         await waitForTunnelStatus(with: .disconnected)
-        resetVpnProfile()
+
 #elseif os(macOS)
         try? await grpcManager.disconnect()
         await waitForTunnelStatus(with: .disconnected)
@@ -233,6 +241,13 @@ private extension ConnectionManager {
                 self?.connectionConfig.allowLan = newValue
             }
             .store(in: &cancellables)
+
+        appSettings.$isAdBlockerEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.enableAdBlocking = newValue
+            }
+            .store(in: &cancellables)
     }
 
     func setupConnectionChangeObserver() {
@@ -285,11 +300,43 @@ extension ConnectionManager {
         guard let oldConfig else { return true }
         guard oldConfig != connectionStorage.connectionConfig else { return false }
 
-        if connectionStorage.connectionConfig .enableTwoHop == true,
-           oldConfig.mixnetTuningConfig != connectionStorage.connectionConfig.mixnetTuningConfig {
+        guard shouldReconnectMixnetTunningSettings(with: oldConfig)
+                || shouldEntryReconnect()
+                || shouldExitRecconnect()
+        else {
             return false
-        } else {
+        }
+        return true
+    }
+
+    func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
+        let newConfig = connectionStorage.connectionConfig
+
+        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
             return true
         }
+
+        if newConfig.enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
+            return false
+        }
+
+        return oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig
+    }
+
+    func shouldEntryReconnect() -> Bool {
+        guard connectionStorage.connectionConfig.entry.gatewayId == connectionInfoData?.entryGatewayId
+        else {
+            return true
+        }
+        return false
+    }
+
+    func shouldExitRecconnect() -> Bool {
+        guard connectionStorage.connectionConfig.exit.gatewayId == connectionInfoData?.exitGatewayId
+        else {
+            return true
+        }
+        return false
     }
 }

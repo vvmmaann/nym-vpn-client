@@ -1,11 +1,13 @@
 import SwiftUI
 import AppSettings
+import CredentialsManager
 import Device
 import ConfigurationManager
 import UIComponents
 import Theme
 
 public struct SettingsView: View {
+    @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
 
     public init(viewModel: SettingsViewModel) {
@@ -42,21 +44,14 @@ private extension SettingsView {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
-        .overlay {
-            if viewModel.isLogoutConfirmationDisplayed {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $viewModel.isLogoutConfirmationDisplayed,
-                        configuration: viewModel.logoutDialogConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: $viewModel.isLogoutLoading
-                    )
-                )
-            }
-        }
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .onAppear {
+            Task {
+                await credentialsManager.updateAccountSummary()
+            }
         }
     }
 

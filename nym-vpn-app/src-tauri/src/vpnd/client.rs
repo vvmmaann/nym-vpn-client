@@ -1,5 +1,5 @@
 pub use super::{
-    account::StoredAccountMode,
+    account::{AccountSummary, StoredAccountMode},
     account_links::AccountLinks,
     error::VpndError,
     feature_flags::FeatureFlags,
@@ -111,6 +111,7 @@ impl VpndClient {
                 c
             }
             Err(nym_vpn_proto::rpc_client::Error::AuthenticationRequired) => {
+                self.log_connect_failed("need to authenticate").await;
                 *guard = ConnectionState::AuthenticationDenied;
                 return Err(VpndError::AuthenticationRequired);
             }
@@ -419,6 +420,16 @@ impl VpndClient {
 
         vpnd.set_allow_lan(enabled)
             .or_else(async |e| self.handle_rpc_error("set_allow_lan", e).await)
+            .await
+    }
+
+    /// Enable or disable ad blocking
+    #[instrument(skip_all)]
+    pub async fn set_ad_block(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_ad_blocking(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_ad_blocking", e).await)
             .await
     }
 
@@ -927,5 +938,16 @@ impl VpndClient {
         vpnd.set_mixnet_traffic_config(config.into())
             .or_else(async |e| self.handle_rpc_error("set_mixnet_traffic_config", e).await)
             .await
+    }
+
+    pub async fn get_account_summary(&self) -> Result<Option<AccountSummary>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let summary = vpnd
+            .get_account_summary()
+            .or_else(async |e| self.handle_rpc_error("get_account_summary", e).await)
+            .await?;
+
+        Ok(summary.map(Into::into))
     }
 }

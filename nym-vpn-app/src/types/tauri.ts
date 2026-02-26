@@ -306,6 +306,24 @@ export type TAccountState =
   | 'requesting-zk-nyms'
   | { error: TBackendError };
 
+export type TAccountSummary = {
+  'subscription-valid-until': string | null;
+  'traffic-used-gb': bigint;
+  'traffic-limit-gb': bigint;
+  'traffic-reset-time': string | null;
+  'account-addr': string;
+  'canonical-account-addr': string | null;
+  'auth-methods': Array<TAuthMethod>;
+};
+
+export type TAuthMethod = {
+  id: string;
+  pubkey: string;
+  kind: string;
+  label: string;
+  status: TVpnAccountStatus;
+};
+
 /**
  * Generic error type made to be passed to the frontend and
  * displayed in the UI as localized error message
@@ -333,6 +351,8 @@ export type TTunnelState =
   | { disconnecting: TunnelAction | null }
   | { error: TunnelError }
   | { offline: { reconnect: boolean } };
+
+export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -393,6 +413,7 @@ export type VpndConfig = {
   customDns: Array<string> | null;
   enableCustomDns: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
   bridges: boolean;

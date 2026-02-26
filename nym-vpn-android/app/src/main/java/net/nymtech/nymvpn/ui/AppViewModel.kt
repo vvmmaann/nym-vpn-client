@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -24,6 +23,7 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
@@ -31,7 +31,6 @@ import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
-import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
@@ -247,49 +246,46 @@ constructor(
 		}
 
 		try {
-			val isLoggedIn = backendManager.isMnemonicStored()
-
-			Timber.tag(TAG).i("DeepLinkAuth started. isLoggedIn=$isLoggedIn")
+			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
 
 			runCatching { backendManager.refreshAccount() }
 
-			if (isLoggedIn) {
-				Timber.tag(TAG).i("DeepLinkAuth: Account linked successfully")
-				return@withContext Route.Account
-			}
-
-			val finalRoute = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
+			val accountState = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
 				backendManager.stateFlow
 					.map { it.accountState }
-					.filterNotNull()
 					.filter { state ->
-						val isSuccess = state is AccountControllerState.ReadyToConnect
-						val isSubscriptionError = state is AccountControllerState.Error && (
-							state.v1 is AccountControllerErrorStateReason.AccountStatusNotActive ||
-								state.v1 is AccountControllerErrorStateReason.InactiveSubscription
-							)
-						isSuccess || isSubscriptionError
+						state is AccountControllerState.ReadyToConnect ||
+							state is AccountControllerState.Decentralised ||
+							state is AccountControllerState.UpgradeMode ||
+							state is AccountControllerState.Error
 					}
 					.first()
-					.let { finalState ->
-						if (finalState is AccountControllerState.ReadyToConnect) {
-							Timber.tag(TAG).i("DeepLinkAuth Success")
-							Route.Main()
-						} else {
-							Timber.tag(TAG).i("DeepLinkAuth Inactive Subscription")
-							Route.SelectPlan
-						}
-					}
 			}
 
-			finalRoute ?: run {
-				Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main.")
-				Route.Main()
+			when (accountState) {
+				is AccountControllerState.ReadyToConnect,
+				is AccountControllerState.Decentralised,
+				is AccountControllerState.UpgradeMode,
+				-> {
+					if (backendManager.hasValidSubscription(TAG)) {
+						Route.Main()
+					} else {
+						Route.SelectPlan
+					}
+				}
+
+				is AccountControllerState.Error -> {
+					Route.SelectPlan
+				}
+
+				else -> {
+					Route.Main(autoStart = false)
+				}
 			}
 		} catch (e: Exception) {
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
-			if (backendManager.isMnemonicStored()) Route.Account else Route.Main(autoStart = false)
+			Route.Main(autoStart = false)
 		}
 	}
 }

@@ -21,6 +21,7 @@ import {
   ProgressMsg,
   SelectedNode,
   TAccountMode,
+  TAccountSummary,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -71,6 +72,7 @@ export type StateAction =
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
   | { type: 'set-allow-lan'; enabled: boolean }
+  | { type: 'set-enable-ad-blocking'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-mode'; mode: TAccountMode }
@@ -84,7 +86,8 @@ export type StateAction =
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
   | { type: 'set-enable-lewes-protocol'; enabled: boolean }
-  | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig };
+  | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
+  | { type: 'set-account-summary'; summary: TAccountSummary };
 
 export const initialState: AppState = {
   initialized: false,
@@ -93,6 +96,7 @@ export const initialState: AppState = {
   tunnelError: null,
   accountState: null,
   accountMode: null,
+  accountSummary: null,
   accountSyncing: false,
   accountError: null,
   daemonStatus: 'down',
@@ -118,6 +122,7 @@ export const initialState: AppState = {
   quic: false,
   allowLan: false,
   domainFronting: false,
+  enableAdBlocking: false,
   backendFlags: {
     quic: false,
     domainFronting: false,
@@ -219,6 +224,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         customDns: action.config.customDns ?? [],
         mixnetTrafficConfig: action.config.mixnetTraffic,
         mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
+        enableAdBlocking: action.config.enableAdBlocking,
       };
 
     case 'set-daemon-info':
@@ -262,6 +268,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         allowLan: action.enabled,
+      };
+    case 'set-enable-ad-blocking':
+      return {
+        ...state,
+        enableAdBlocking: action.enabled,
       };
     case 'set-desktop-notifications':
       return {
@@ -468,6 +479,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         mixnetTrafficConfig: action.config,
+      };
+    case 'set-account-summary':
+      return {
+        ...state,
+        accountSummary: action.summary,
       };
     case 'reset':
       return initialState;
