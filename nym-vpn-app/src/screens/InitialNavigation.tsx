@@ -6,10 +6,16 @@ import { routes } from '../router';
 let navigationHandled = false;
 
 function InitialNavigation() {
-  const { account, initialized } = useMainState();
+  const { account, initialized, daemonStatus } = useMainState();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (daemonStatus === 'auth-denied') {
+      navigate(routes.systemAuthentication, { replace: true });
+      console.log('[InitialNavigation] daemonStatus is auth-denied');
+      return;
+    }
+
     if (!initialized || navigationHandled) {
       return;
     }
@@ -20,7 +26,7 @@ function InitialNavigation() {
     if (!account) {
       navigate(routes.onboarding, { replace: true });
     }
-  }, [account, initialized, navigate]);
+  }, [account, daemonStatus, initialized, navigate]);
 
   return null;
 }

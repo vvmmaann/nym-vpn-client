@@ -23,6 +23,7 @@ export const ns = [
   'login',
   'onboarding',
   'tray',
+  'systemAuthentication',
 ] as const;
 
 export const languages = [

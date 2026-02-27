@@ -178,6 +178,10 @@ impl AppState {
             state.vpnd_status = VpndStatus::AuthDenied;
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
+        let tray_manager = app.state::<TrayManager>();
+        tray_manager
+            .update_tray_icon(TunnelState::Offline {reconnect: false})
+            .await;
     }
 }
 

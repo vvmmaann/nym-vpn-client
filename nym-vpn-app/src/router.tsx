@@ -29,6 +29,7 @@ import {
   Signup,
   Socks5,
   Support,
+  SystemAuthentication,
   Welcome,
 } from './screens';
 
@@ -37,6 +38,7 @@ const Home = lazy(() => import('./screens/home/Home'));
 
 export const routes = {
   root: '/',
+  systemAuthentication: '/system-authentication',
   login: '/login',
   signup: '/signup',
   account: '/account',
@@ -77,6 +79,11 @@ const router = createBrowserRouter([
         Component: Home,
         errorElement: <Error />,
         index: true,
+      },
+      {
+        path: routes.systemAuthentication,
+        Component: SystemAuthentication,
+        errorElement: <Error />,
       },
       {
         path: routes.login,

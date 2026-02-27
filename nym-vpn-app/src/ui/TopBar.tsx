@@ -72,19 +72,12 @@ export default function TopBar() {
         title: getMainScreenTitle(),
         rightIcon: 'settings',
         rightIconDisabled: daemonStatus === 'auth-denied',
-        // rightComponent: (
-        //   <ButtonIcon
-        //     icon="settings"
-        //     disabled={daemonStatus === 'auth-denied'}
-        //     onClick={currentNavLocation.handleRightNav!}
-        //     color="chalk"
-        //     className="mx-4"
-        //     noDefaultSize
-        //   />
-        // ),
         handleRightNav: () => {
           navigate(routes.settings);
         },
+        noBackground: true,
+      },
+      '/system-authentication': {
         noBackground: true,
       },
       '/signup': {
