@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
@@ -10,10 +10,8 @@ import {
   DialogProvider,
   InAppNotificationProvider,
   MainStateProvider,
-  NodeListStateProvider,
-  Socks5Provider,
+  SystemAuthenticationProvider,
   TopBarProvider,
-  TrayProvider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -21,7 +19,6 @@ import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
-import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
 
@@ -71,23 +68,17 @@ function App({ init }: { init: InitState }) {
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider init={init}>
-            <GatewaysProvider>
-              <TrayProvider>
-                <NodeListStateProvider>
-                  <Socks5Provider>
-                    <ThemeSetter>
-                      <DialogProvider>
-                        <TopBarProvider>
-                          <Suspense fallback={<RouteLoading />}>
-                            <RouterProvider router={router} />
-                          </Suspense>
-                        </TopBarProvider>
-                      </DialogProvider>
-                    </ThemeSetter>
-                  </Socks5Provider>
-                </NodeListStateProvider>
-              </TrayProvider>
-            </GatewaysProvider>
+            <SystemAuthenticationProvider>
+              <ThemeSetter>
+                <DialogProvider>
+                  <TopBarProvider>
+                    <Suspense fallback={<RouteLoading />}>
+                      <RouterProvider router={router} />
+                    </Suspense>
+                  </TopBarProvider>
+                </DialogProvider>
+              </ThemeSetter>
+            </SystemAuthenticationProvider>
           </MainStateProvider>
         </Toast.Provider>
       </InAppNotificationProvider>

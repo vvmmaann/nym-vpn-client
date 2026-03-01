@@ -92,7 +92,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
 
   // initial load and periodic polling
   useEffect(() => {
-    if (initialized || daemonStatus === 'auth-denied') {
+    if (initialized) {
       return;
     }
     initialized = true;

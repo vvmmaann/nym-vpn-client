@@ -66,6 +66,7 @@ function MainStateProvider({ children, init }: Props) {
       console.log(
         'daemonStatus is down or auth-denied, skipping initialization',
       );
+      batchesInitialized = false;
       return;
     }
     if (batchesInitialized) {
@@ -90,6 +91,10 @@ function MainStateProvider({ children, init }: Props) {
   }, [state.daemonStatus]);
 
   useEffect(() => {
+    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+      systemMessageInit = false;
+      return;
+    }
     if (
       systemMessageInit ||
       init.vpnd === 'down' ||
