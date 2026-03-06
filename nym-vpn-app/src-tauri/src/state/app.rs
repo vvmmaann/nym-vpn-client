@@ -180,7 +180,7 @@ impl AppState {
         }
         let tray_manager = app.state::<TrayManager>();
         tray_manager
-            .update_tray_icon(TunnelState::Offline {reconnect: false})
+            .update_tray_icon(TunnelState::Offline { reconnect: false })
             .await;
     }
 }

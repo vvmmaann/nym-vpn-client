@@ -33,17 +33,18 @@ pub enum VpndStatus {
     AuthDenied,
 }
 
-#[cfg(target_os = "linux")]
+#[allow(clippy::derivable_impls)]
 impl Default for VpndStatus {
     fn default() -> Self {
-        VpndStatus::AuthDenied
-    }
-}
+        #[cfg(target_os = "linux")]
+        {
+            VpndStatus::AuthDenied
+        }
 
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-impl Default for VpndStatus {
-    fn default() -> Self {
-        VpndStatus::Down
+        #[cfg(any(target_os = "windows", target_os = "macos"))]
+        {
+            VpndStatus::Down
+        }
     }
 }
 
