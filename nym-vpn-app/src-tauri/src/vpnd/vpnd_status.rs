@@ -28,7 +28,6 @@ pub enum VpndStatus {
         requirement: String,
     },
     /// The daemon is not serving or running
-    // #[default]
     Down,
     /// The daemon requires authentication that was denied or cancelled
     AuthDenied,

@@ -1,14 +1,24 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Button, ButtonIcon, Dialog, MsIcon } from '../../ui';
+import { Button, ButtonIcon, Dialog, MsIcon } from '../ui';
+import { useMainState } from '../contexts';
 
-export function MyComponent() {
+export function SystemAuthentication() {
+  const { daemonStatus } = useMainState();
+  console.log('[SystemAuthentication] daemonStatus', daemonStatus);
+
   const { t } = useTranslation('systemAuthentication');
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (daemonStatus === 'auth-denied') {
+      setIsOpen(true);
+    }
+  }, [daemonStatus]);
 
   const handleAuthenticate = async () => {
     setLoading(true);

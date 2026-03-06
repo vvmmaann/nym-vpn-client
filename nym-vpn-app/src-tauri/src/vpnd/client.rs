@@ -94,7 +94,6 @@ impl VpndClient {
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<RpcClient, VpndError> {
         let mut guard = self.rpc_client.lock().await;
-        info!("vpnd guard: {:?}", guard);
         match &*guard {
             // fast path: already created
             ConnectionState::Connected(rpc_client) => return Ok(rpc_client.clone()),
@@ -127,10 +126,6 @@ impl VpndClient {
         *guard = ConnectionState::Connected(client.clone());
         Ok(client)
     }
-
-    // pub fn get_connection_state(&self) -> ConnectionState {
-    //     self.rpc_client.lock().unwrap().clone()
-    // }
 
     pub async fn retry_daemon_authentication(&self) {
         let mut guard = self.rpc_client.lock().await;

@@ -14,7 +14,6 @@ import {
 } from '../../contexts';
 import {
   BackendError,
-  DaemonStatus,
   StateDispatch,
   isCountry,
   isGateway,
@@ -29,16 +28,11 @@ import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import { regionToCountryCode } from './util';
-import { MyComponent } from './MyComponent';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 const os = type();
 let compatChecked = false;
-
-function isDaemonUnavailable(status: DaemonStatus): boolean {
-  return status === 'down' || status === 'auth-denied';
-}
 
 function Home() {
   const {
@@ -53,15 +47,14 @@ function Home() {
     networkCompat,
   } = useMainState();
 
-  console.log('daemonStatus', daemonStatus);
-
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const { lookupGw } = useGateways();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
-  const daemonUnavailable = isDaemonUnavailable(daemonStatus);
+  const daemonUnavailable =
+    daemonStatus === 'auth-denied' || daemonStatus === 'down';
   const needAPlan =
     !daemonUnavailable &&
     state === 'disconnected' &&
@@ -75,6 +68,12 @@ function Home() {
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
   const handleClick = () => {
+    if (daemonStatus === 'auth-denied') {
+      invoke('retry_authentication').catch((e: unknown) => {
+        console.error('retry_authentication failed', e);
+      });
+      return;
+    }
     if (state === 'disconnected' && !account) {
       navigate(routes.onboarding);
       return;
@@ -132,12 +131,19 @@ function Home() {
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
+
+    if (daemonStatus === 'auth-denied') {
+      return t('authenticate');
+    }
+
     if (!account) {
       return t('get-started');
     }
+
     if (needAPlan) {
       return t('choose-plan');
     }
+
     switch (state) {
       case 'connected':
         return t('disconnect');
@@ -155,9 +161,13 @@ function Home() {
       case 'error':
         return cancel;
     }
-  }, [state, t, needAPlan, account]);
+  }, [state, t, needAPlan, account, daemonStatus]);
 
   const getButtonColor = () => {
+    if (daemonStatus === 'auth-denied') {
+      return 'cornflower';
+    }
+
     switch (state) {
       case 'disconnected':
       case 'offline':
@@ -171,6 +181,14 @@ function Home() {
       case 'unknown':
         return 'gray';
     }
+  };
+
+  const getButtonDisabled = () => {
+    if (daemonStatus === 'auth-denied') {
+      return false;
+    }
+
+    return loading || daemonUnavailable || state === 'offline';
   };
 
   const goToNodeList = (hop: 'entry' | 'exit') => {
@@ -229,8 +247,6 @@ function Home() {
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
-        <h1>Daemon Status: {daemonStatus}</h1>
-        <MyComponent />
         <div
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"
@@ -271,7 +287,7 @@ function Home() {
           <Button
             onClick={handleClick}
             color={getButtonColor()}
-            disabled={loading || daemonUnavailable || state === 'offline'}
+            disabled={getButtonDisabled()}
             spinner={loading}
             className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
             textSize="base"
@@ -280,28 +296,6 @@ function Home() {
           >
             {getButtonText()}
           </Button>
-          <button
-            onClick={() => {
-              invoke('daemon_status').then((result) => {
-                console.log(result);
-              });
-            }}
-          >
-            get daemon status
-          </button>
-          {daemonStatus === 'auth-denied' && (
-            <Button
-              color="cornflower"
-              onClick={() => {
-                invoke('retry_authentication').catch((e: unknown) => {
-                  console.error('retry_authentication failed', e);
-                });
-              }}
-              data-testid="home-authenticate-button"
-            >
-              {t('authenticate', { ns: 'home' })}
-            </Button>
-          )}
         </div>
       </motion.div>
     </>

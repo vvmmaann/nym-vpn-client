@@ -257,7 +257,11 @@ async fn main() -> Result<()> {
                             vpnd_check::netstats_check(&db, &c_vpnd).await.ok();
 
                             info!("watching vpnd events");
+                            // start watching vpnd events, this is a blocking call
+                            // and will keep the task alive as long as the grpc connection
+                            // with vpnd is UP
                             c_vpnd.watch_events(&handle).await.ok();
+                            // if the events stream cuts off, that means vpnd is down
                             AppState::vpnd_down(&handle).await;
                         }
                         Err(VpndError::AuthenticationRequired) => {

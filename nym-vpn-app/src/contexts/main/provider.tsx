@@ -108,6 +108,7 @@ function MainStateProvider({ children, init }: Props) {
     const querySystemMessages = async () => {
       try {
         const messages = await invoke<SystemMessage[]>('system_messages');
+        console.log('system messages', messages);
         if (messages.length > 0) {
           console.info('system messages', messages);
           push({

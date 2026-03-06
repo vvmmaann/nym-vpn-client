@@ -9,13 +9,6 @@ function InitialNavigation() {
   const { account, initialized, daemonStatus } = useMainState();
   const navigate = useNavigate();
 
-  // navigate to SystemAuthentication whenever daemon status is auth-denied
-  useEffect(() => {
-    if (daemonStatus === 'auth-denied') {
-      navigate(routes.systemAuthentication, { replace: true });
-    }
-  }, [daemonStatus, navigate]);
-
   useEffect(() => {
     if (!initialized || navigationHandled) {
       return;

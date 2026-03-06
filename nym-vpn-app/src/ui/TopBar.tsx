@@ -38,7 +38,7 @@ export default function TopBar() {
   const { t } = useTranslation();
   const os = type();
 
-  const { uiTheme, daemonStatus } = useMainState();
+  const { uiTheme } = useMainState();
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
 
@@ -71,13 +71,9 @@ export default function TopBar() {
       '/': {
         title: getMainScreenTitle(),
         rightIcon: 'settings',
-        rightIconDisabled: daemonStatus === 'auth-denied',
         handleRightNav: () => {
           navigate(routes.settings);
         },
-        noBackground: true,
-      },
-      '/system-authentication': {
         noBackground: true,
       },
       '/signup': {
@@ -294,7 +290,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show, uiTheme, daemonStatus]);
+  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

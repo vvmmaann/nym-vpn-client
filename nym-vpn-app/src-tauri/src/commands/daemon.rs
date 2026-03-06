@@ -31,7 +31,7 @@ pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
 ) -> Result<VpndStatus, BackendError> {
     let status = app_state.lock().await.vpnd_status.clone();
-    info!("daemon status: {:?}", status);
+    debug!("daemon status: {:?}", status);
     Ok(status)
 }
 

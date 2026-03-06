@@ -183,6 +183,9 @@ export function reducer(state: AppState, action: StateAction): AppState {
           tunnelConnectedAt: null,
           tunnelError: null,
           connectingState: null,
+          accountSummary: null,
+          account: false,
+          accountMode: null,
           error: {
             key: 'not-connected-to-daemon',
             message: 'Not connected to the daemon',
@@ -199,6 +202,9 @@ export function reducer(state: AppState, action: StateAction): AppState {
           tunnelConnectedAt: null,
           tunnelError: null,
           connectingState: null,
+          accountSummary: null,
+          account: false,
+          accountMode: null,
           error: {
             key: 'auth-denied',
             message: 'Authentication required',

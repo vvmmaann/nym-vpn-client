@@ -8,10 +8,13 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
 import {
   DialogProvider,
+  GatewaysProvider,
   InAppNotificationProvider,
   MainStateProvider,
-  SystemAuthenticationProvider,
+  NodeListStateProvider,
+  Socks5Provider,
   TopBarProvider,
+  TrayProvider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -68,17 +71,23 @@ function App({ init }: { init: InitState }) {
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider init={init}>
-            <SystemAuthenticationProvider>
-              <ThemeSetter>
-                <DialogProvider>
-                  <TopBarProvider>
-                    <Suspense fallback={<RouteLoading />}>
-                      <RouterProvider router={router} />
-                    </Suspense>
-                  </TopBarProvider>
-                </DialogProvider>
-              </ThemeSetter>
-            </SystemAuthenticationProvider>
+            <GatewaysProvider>
+              <TrayProvider>
+                <NodeListStateProvider>
+                  <Socks5Provider>
+                    <ThemeSetter>
+                      <DialogProvider>
+                        <TopBarProvider>
+                          <Suspense fallback={<RouteLoading />}>
+                            <RouterProvider router={router} />
+                          </Suspense>
+                        </TopBarProvider>
+                      </DialogProvider>
+                    </ThemeSetter>
+                  </Socks5Provider>
+                </NodeListStateProvider>
+              </TrayProvider>
+            </GatewaysProvider>
           </MainStateProvider>
         </Toast.Provider>
       </InAppNotificationProvider>

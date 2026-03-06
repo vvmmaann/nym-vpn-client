@@ -75,17 +75,6 @@ export function daemonStatusUpdate(
       type: 'error',
     });
   }
-  if (status === 'authDenied') {
-    push({
-      id: 'daemon-auth-denied',
-      message: i18n.t('daemon-auth-denied', {
-        ns: 'notifications',
-      }),
-      close: true,
-      duration: 6000,
-      type: 'warn',
-    });
-  }
 }
 
 export async function networkEnvChanged(status: VpndStatus) {

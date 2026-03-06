@@ -11,4 +11,3 @@ export * from './settings';
 export * from './node';
 export * from './login';
 export * from './sign-up';
-export * from './system-authentication';
