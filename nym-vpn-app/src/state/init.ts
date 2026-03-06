@@ -10,7 +10,6 @@ import {
   AccountLinks,
   CodeDependency,
   FeatureFlags,
-  InitState,
   NetworkCompat,
   StateDispatch,
   TAccountMode,
@@ -38,12 +37,7 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(
-  dispatch: StateDispatch,
-  initState: InitState,
-) {
-  // debugger;
-  console.log('initFirstBatch', { ...initState });
+export async function initFirstBatch(dispatch: StateDispatch) {
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
@@ -211,7 +205,8 @@ export async function initFirstBatch(
     },
   };
 
-  let requests: TauriReq<never>[] = [
+  // fire all requests concurrently
+  await fireRequests([
     getVersionRq,
     getThemeRq,
     getRootFontSizeRq,
@@ -221,29 +216,16 @@ export async function initFirstBatch(
     getDesktopNotificationsRq,
     getNetworkStatsRq,
     getDomainFrontingRq,
-  ];
-
-  requests = [
     initStateRq,
     getStoredAccountRq,
     getAccountStateRq,
     getAccountModeRq,
     getAccountSummaryRq,
     getFeatureFlagsRq,
-    ...requests,
-  ];
-  // if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
-  // }
-
-  // fire all requests concurrently
-  await fireRequests(requests);
+  ]);
 }
 
-export async function initSecondBatch(
-  dispatch: StateDispatch,
-  initState: InitState,
-) {
-  console.log('initSecondBatch', { ...initState });
+export async function initSecondBatch(dispatch: StateDispatch) {
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
@@ -290,10 +272,10 @@ export async function initSecondBatch(
     },
   };
 
-  let requests: TauriReq<never>[] = [getAutostart, getDefaultDnsRq];
-  requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
-  // if (initState.vpnd !== 'down' && initState.vpnd !== 'authDenied') {
-  // }
-
-  await fireRequests(requests);
+  await fireRequests([
+    getAutostart,
+    getDefaultDnsRq,
+    getAccountLinksRq,
+    getNetworkCompatRq,
+  ]);
 }

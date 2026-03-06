@@ -9,7 +9,6 @@ import { CCache } from '../../cache';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
-// let initialized = false;
 let batchesInitialized = false;
 let systemMessageInit = false;
 
@@ -37,19 +36,11 @@ function MainStateProvider({ children, init }: Props) {
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
   });
 
-  console.log('init', { ...init });
-  console.log('state', { ...state });
-
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
 
   // initialize app state
   useEffect(() => {
-    // if (initialized) {
-    //   console.log('initialized, skipping initialization');
-    //   return;
-    // }
-    // initialized = true;
     daemonStatusUpdate(init.vpnd, dispatch, push);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
@@ -76,14 +67,14 @@ function MainStateProvider({ children, init }: Props) {
     batchesInitialized = true;
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch(dispatch, init).then(() => {
+    initFirstBatch(dispatch).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
     });
 
     // this second batch is not needed for the app to be fully
     // functional, and continue loading in the background
-    initSecondBatch(dispatch, init).then(() => {
+    initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
 
@@ -95,12 +86,11 @@ function MainStateProvider({ children, init }: Props) {
       systemMessageInit = false;
       return;
     }
+
     if (
       systemMessageInit ||
       init.vpnd === 'down' ||
-      init.vpnd === 'authDenied' ||
-      state.daemonStatus === 'down' ||
-      state.daemonStatus === 'auth-denied'
+      init.vpnd === 'authDenied'
     ) {
       return;
     }
@@ -108,7 +98,6 @@ function MainStateProvider({ children, init }: Props) {
     const querySystemMessages = async () => {
       try {
         const messages = await invoke<SystemMessage[]>('system_messages');
-        console.log('system messages', messages);
         if (messages.length > 0) {
           console.info('system messages', messages);
           push({

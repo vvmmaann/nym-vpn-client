@@ -33,14 +33,14 @@ pub enum VpndStatus {
     AuthDenied,
 }
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(target_os = "linux")]
 impl Default for VpndStatus {
     fn default() -> Self {
         VpndStatus::AuthDenied
     }
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 impl Default for VpndStatus {
     fn default() -> Self {
         VpndStatus::Down

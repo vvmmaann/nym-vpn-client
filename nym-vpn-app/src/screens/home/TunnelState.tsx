@@ -137,7 +137,6 @@ function TunnelState() {
       return <p data-testid="account-specific-error">{error}</p>;
     }
     if (error) {
-      console.log('[TunnelState] error', error);
       return generalError(error);
     }
   };

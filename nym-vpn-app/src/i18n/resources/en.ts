@@ -33,5 +33,5 @@ export const en = {
   notifications,
   login,
   tray,
-  systemAuthentication,
+  'system-authentication': systemAuthentication,
 } as const;

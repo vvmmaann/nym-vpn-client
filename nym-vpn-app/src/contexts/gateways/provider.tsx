@@ -20,15 +20,9 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   const { initialized, daemonStatus, vpnMode } = useMainState();
 
-  // const fetchGateways = async (nodeType: GatewayType) => {
-  //   return Promise.resolve();
-  // }
   // use cached values if any, otherwise query from daemon
   const fetchGateways = useCallback(
     async (nodeType: GatewayType) => {
-      if (daemonStatus === 'auth-denied') {
-        return;
-      }
       const { loading } = getStateProps(nodeType);
       if (state[loading]) {
         return;

@@ -9,15 +9,13 @@ export function SystemAuthentication() {
   const { daemonStatus } = useMainState();
   console.log('[SystemAuthentication] daemonStatus', daemonStatus);
 
-  const { t } = useTranslation('systemAuthentication');
+  const { t } = useTranslation('system-authentication');
 
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (daemonStatus === 'auth-denied') {
-      setIsOpen(true);
-    }
+    setIsOpen(daemonStatus === 'auth-denied');
   }, [daemonStatus]);
 
   const handleAuthenticate = async () => {

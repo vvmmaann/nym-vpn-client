@@ -25,7 +25,6 @@ type NavLocation = {
   rightIcon?: string;
   rightComponent?: ReactNode;
   rightIconClassName?: string;
-  rightIconDisabled?: boolean;
   handleRightNav?: () => void;
   noBackground?: boolean;
 };
@@ -383,7 +382,6 @@ export default function TopBar() {
               color="chalk"
               className="mx-4"
               noDefaultSize
-              disabled={currentNavLocation.rightIconDisabled}
             />
           )}
         </motion.div>

@@ -122,19 +122,10 @@ export function useTauriEvents(
 
   const registerVpnConfigListener = useCallback(() => {
     return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
-      console.log('tunnel config update', payload);
       dispatch({
         type: 'update-tunnel-config',
         config: payload,
       });
-      // dispatch({
-      //   type: 'set-custom-dns-enabled',
-      //   enabled: payload.enableCustomDns,
-      // });
-      // dispatch({
-      //   type: 'set-custom-dns',
-      //   dns: payload.customDns ?? [],
-      // });
     });
   }, [dispatch]);
 
