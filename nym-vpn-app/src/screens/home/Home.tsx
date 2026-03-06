@@ -29,6 +29,7 @@ import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import { regionToCountryCode } from './util';
+import { MyComponent } from './MyComponent';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -229,6 +230,7 @@ function Home() {
           <TunnelState />
         </div>
         <h1>Daemon Status: {daemonStatus}</h1>
+        <MyComponent />
         <div
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"
