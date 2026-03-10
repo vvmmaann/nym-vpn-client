@@ -11,7 +11,7 @@ use tonic::transport::server::Connected;
 pub fn create_incoming(
     socket_path: std::path::PathBuf,
     #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
-    #[cfg(target_os = "macos")] signing_requirement: String,
+    #[cfg(target_os = "macos")] signing_requirements: crate::SigningRequirements,
     #[cfg(unix)] shutdown_token: tokio_util::sync::CancellationToken,
 ) -> Result<impl Stream<Item = Result<impl AsyncRead + AsyncWrite + Connected + 'static>>> {
     #[cfg(target_os = "macos")]
@@ -22,7 +22,7 @@ pub fn create_incoming(
         }
         #[cfg(any(not(debug_assertions), feature = "xpc"))]
         {
-            crate::xpc::incoming(signing_requirement, shutdown_token)
+            crate::xpc::incoming(signing_requirements, shutdown_token)
         }
     }
     #[cfg(target_os = "linux")]
