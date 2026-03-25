@@ -42,7 +42,7 @@ exe=$1
 
 # If we are signing the Tauri app, then also sign the daemon and split-tunnel driver.
 if [[ "$exe" == *NymVPN.exe ]]; then
-	for additonal in "nym-vpnd.exe" "nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.cat"; do
+	for additonal in "SignableFile.bin"; do
 		sign "$additonal"
 	done
 fi
