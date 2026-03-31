@@ -1,8 +1,11 @@
 #if os(macOS)
 import Foundation
 import ConnectionTypes
+import Constants
 import NotificationMessages
 import TunnelMixnet
+import TunnelStatus
+import WidgetKit
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
@@ -38,6 +41,7 @@ extension ConnectionManager {
                 self?.currentTunnelStatus = status
                 self?.scheduleNotificationIfNeeded()
                 self?.updateTimeConnected()
+                self?.updateWidgetState(for: status)
             }
         }
         .store(in: &cancellables)
@@ -107,6 +111,24 @@ private extension ConnectionManager {
         Task {
             await NotificationMessages.scheduleDisconnectNotification()
         }
+    }
+}
+
+// MARK: - Widget -
+extension ConnectionManager {
+    func updateWidgetState(for status: TunnelStatus) {
+        let defaults = UserDefaults(suiteName: Constants.groupID.rawValue)
+        if status == .connected {
+            if let code = connectionStorage.entryGateway.countryCode {
+                let name = Locale.current.localizedString(forRegionCode: code) ?? code
+                defaults?.set(name, forKey: "macos_widgetEntryLocation")
+            }
+            if let code = connectionStorage.exitRouter.countryCode {
+                let name = Locale.current.localizedString(forRegionCode: code) ?? code
+                defaults?.set(name, forKey: "macos_widgetExitLocation")
+            }
+        }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 #endif

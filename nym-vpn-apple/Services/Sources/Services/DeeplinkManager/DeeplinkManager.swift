@@ -6,6 +6,8 @@ import CredentialsManager
 public final class DeeplinkManager {
     private let credentialsManager: CredentialsManager
 
+    public var vpnToggleRequested = false
+
     public init (credentialsManager: CredentialsManager) {
         self.credentialsManager = credentialsManager
     }
@@ -14,6 +16,12 @@ public final class DeeplinkManager {
         guard url.scheme == Constants.appUrlScheme.rawValue,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
         else {
+            return
+        }
+
+        // VPN toggle from widget
+        if components.host == "vpn", components.path == "/toggle" {
+            vpnToggleRequested = true
             return
         }
 

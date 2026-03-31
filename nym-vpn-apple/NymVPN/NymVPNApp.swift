@@ -89,6 +89,14 @@ struct NymVPNApp: App {
             .onOpenURL { incomingURL in
                 deeplinkManager.handle(url: incomingURL)
             }
+            .onChange(of: deeplinkManager.vpnToggleRequested) { _, requested in
+                if requested {
+                    deeplinkManager.vpnToggleRequested = false
+                    Task {
+                        try? await connectionManager.connectDisconnect()
+                    }
+                }
+            }
             .environmentObject(appSettings)
             .environmentObject(configurationManager)
             .environmentObject(connectionManager)
