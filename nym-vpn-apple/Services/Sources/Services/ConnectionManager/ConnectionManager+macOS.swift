@@ -35,6 +35,8 @@ extension ConnectionManager {
 // MARK: - Setup -
 extension ConnectionManager {
     func setupGRPCManagerObservers() {
+        updateWidgetState(for: currentTunnelStatus)
+
         grpcManager.$tunnelStatus.sink { [weak self] status in
             Task { @MainActor [weak self] in
                 guard self?.currentTunnelStatus != status else { return }
@@ -128,6 +130,7 @@ extension ConnectionManager {
                 defaults?.set(name, forKey: "macos_widgetExitLocation")
             }
         }
+        defaults?.set(status.rawValue, forKey: "macos_widgetTunnelStatus")
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

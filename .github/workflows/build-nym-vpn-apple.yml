@@ -258,11 +258,24 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "📦 Fetching signing files from App Store Connect..."
+          echo "📦 Fetching iOS signing files from App Store Connect..."
           app-store-connect fetch-signing-files net.nymtech.vpn \
             --type IOS_APP_ADHOC \
             --create \
             --delete-stale-profiles
+
+          echo "📦 Downloading macOS provisioning profiles..."
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN macOS + Daemon" \
+            --save
+
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "Developer ID Widget" \
+            --save
 
           keychain add-certificates
 
@@ -507,10 +520,6 @@ jobs:
             -configuration "Release" \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=macOS" \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
             | xcbeautify --renderer github-actions

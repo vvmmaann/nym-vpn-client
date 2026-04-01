@@ -1,12 +1,15 @@
+#if os(iOS)
 import SwiftUI
 import WidgetKit
 
-@available(iOSApplicationExtension 18.0, *)
-struct NymVPNControlWidget: ControlWidget {
-    static let displayName = LocalizedStringResource(stringLiteral: "NymVPN")
-    static let description = LocalizedStringResource(stringLiteral: "View and manage your VPN connection.")
+@available(iOS 18.0, macOS 26.0, *)
+public struct NymVPNControlWidget: ControlWidget {
+    public static let displayName = LocalizedStringResource(stringLiteral: "NymVPN")
+    public static let description = LocalizedStringResource(stringLiteral: "View and manage your VPN connection.")
 
-    var body: some ControlWidgetConfiguration {
+    public init() {}
+
+    public var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
             kind: "NymVPNControlWidget",
             provider: VPNControlStatusValueProvider()
@@ -28,3 +31,4 @@ struct NymVPNControlWidget: ControlWidget {
         .description(Self.description)
     }
 }
+#endif

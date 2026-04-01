@@ -3,10 +3,14 @@ import WidgetKit
 import AppIntents
 import NetworkExtension
 
-struct VPNStatusView: View {
-    let entry: VPNStatusTimelineEntry
+public struct VPNStatusView: View {
+    public let entry: VPNStatusTimelineEntry
 
-    var body: some View {
+    public init(entry: VPNStatusTimelineEntry) {
+        self.entry = entry
+    }
+
+    public var body: some View {
         VStack(spacing: 0) {
             topSection
             statusLabel

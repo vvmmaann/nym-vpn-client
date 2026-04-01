@@ -1,10 +1,12 @@
 import SwiftUI
 import WidgetKit
 
-struct NymVPNStatusWidget: Widget {
-    let kind = "NymVPNStatusWidget"
+public struct NymVPNStatusWidget: Widget {
+    public let kind = "NymVPNStatusWidget"
 
-    var body: some WidgetConfiguration {
+    public init() {}
+
+    public var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: VPNStatusTimelineProvider()) { entry in
             VPNStatusView(entry: entry)
                 .widgetURL(URL(string: "nymvpn://home"))
