@@ -262,7 +262,8 @@ jobs:
           app-store-connect fetch-signing-files net.nymtech.vpn \
             --type IOS_APP_ADHOC \
             --create \
-            --delete-stale-profiles
+            --delete-stale-profiles \
+            --platform IOS
 
           echo "📦 Downloading macOS provisioning profiles..."
           app-store-connect profiles list \
@@ -274,7 +275,7 @@ jobs:
           app-store-connect profiles list \
             --type MAC_APP_DIRECT \
             --state ACTIVE \
-            --name "Developer ID Widget" \
+            --name "NymVPN macOS Widget" \
             --save
 
           keychain add-certificates
