@@ -3,13 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
 		58B5A2E42EB52A730079FE55 /* nym-setup in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = 58B5A2E22EB52A490079FE55 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		C9ABC8142F85252500057300 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = C9ABC8132F85252500057300 /* Vapor */; };
 		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
 		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
@@ -240,6 +241,10 @@
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C942EE9B2F7FE02700C5FBE7 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		D954C0B52B51C1CA00C6BAAC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -250,6 +255,7 @@
 				D975F8042CE51097002D42C7 /* ErrorHandler in Frameworks */,
 				D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */,
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
+				C9ABC8142F85252500057300 /* Vapor in Frameworks */,
 				D98E52332D40087A00AE92C3 /* ErrorReason in Frameworks */,
 				D9643C702CEBC90700F6B9A7 /* NotificationMessages in Frameworks */,
 				D93214472B84EBEA00FFDC5E /* Logging in Frameworks */,
@@ -365,6 +371,7 @@
 		D954C0BA2B51C1CA00C6BAAC /* NymMixnetTunnel */ = {
 			isa = PBXGroup;
 			children = (
+				C942EE9B2F7FE02700C5FBE7 /* Resources */,
 				D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */,
 				D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */,
 				D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */,
@@ -519,6 +526,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				C942EE9B2F7FE02700C5FBE7 /* Resources */,
+			);
 			name = NymMixnetTunnel;
 			packageProductDependencies = (
 				D93214462B84EBEA00FFDC5E /* Logging */,
@@ -532,6 +542,7 @@
 				D98E52342D40096600AE92C3 /* NetworkMonitor */,
 				D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */,
 				D93466CA2E57A1F700BEF458 /* NymVPNLib */,
+				C9ABC8132F85252500057300 /* Vapor */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -716,6 +727,7 @@
 				D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */,
 				D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */,
 				D98B32E62C58E0A4005A15A3 /* XCRemoteSwiftPackageReference "AcknowList" */,
+				C9ABC8122F85252500057300 /* XCRemoteSwiftPackageReference "vapor" */,
 			);
 			productRefGroup = D99A14772B357E9900F2728B /* Products */;
 			projectDirPath = "";
@@ -1334,6 +1346,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C9ABC8122F85252500057300 /* XCRemoteSwiftPackageReference "vapor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/vapor.git";
+			requirement = {
+				kind = exactVersion;
+				version = 4.121.3;
+			};
+		};
 		D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log";
@@ -1372,6 +1392,11 @@
 		582C5F8D2C7654A800B678AE /* ConfigurationManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConfigurationManager;
+		};
+		C9ABC8132F85252500057300 /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9ABC8122F85252500057300 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
 		};
 		D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadCertificateFileName</key>
+            <string>ca.der</string>
+            <key>PayloadContent</key>
+            <data>
+                MIIE5jCCAs4CCQCbDzi+KTaxKTANBgkqhkiG9w0BAQsFADA1MRgwFgYDVQQDDA9NeSBEb0ggUHJveHkgQ0ExDDAKBgNVBAoMA1BvQzELMAkGA1UEBhMCVVMwHhcNMjYwNDAzMTE0NTUwWhcNMzYwMzMxMTE0NTUwWjA1MRgwFgYDVQQDDA9NeSBEb0ggUHJveHkgQ0ExDDAKBgNVBAoMA1BvQzELMAkGA1UEBhMCVVMwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC5tCk9NI22UrenZKP8QXb/Yvy0glwb0feACjB04Q546kVIy73M3+N1WWflEZjzigejnZse3hvbk+lko07O2Nz5rAFt3QhHX/7s2RvEizog8xxBImiPhPhNsW4Av5j/42umlRmYP9POQEESGY0h1xSaSI9UPLWHRA5K3RCDvsUGx8/Auh06VHx47jHwr3zqdK3KV1Uv20dxq5mynpYRcOn7+DEZKSZ4XaxMZLWG6vRKd9bSNK1y/oJIVzPuhnVih9Q1Vey5BqKmMQpunoMqmUJIWLzjEJyg9uSMzHERxBf1uXLUycwW4qUkZXHU7LLnGAlwJyRftnNpEs6573z57QH5WMwLVduWoDqTAnjjlTI99APUKayKN0UIYwCLSoVpt2ULPAlmCyKRQSJIs/vz1AMPPxWaMHRe0fLKvVANvKGxSHsKiww8YaoabM/Y5x5gth7yFyu7dFMfc+saaPf+P3qk3+ovjJr3X9hLXtLM6CoHmm9yiEShHHRMVrW4Ks1LMyt43Abjxjt8fPGKlM9N2WXvFG3/Cp07cpuxmftSaFk966cWmXi6NnIfFZ7UEC9sKHmF1SAfR9U8s+0Cdn6bjItK+rsTmpywKLK5XrqUFI3cekZTWfgsaPzWzuqFQQXaOevOeOUZYOMxzrf45PH3EgSUFBpn+2V6S4GlLIupGE8EfwIDAQABMA0GCSqGSIb3DQEBCwUAA4ICAQAvUZHwXBL8KMmouxVMKMB+fAaIFHumLze2bZiMeLrB9MuLIraKe1/oEz6PfJFzgKkcYNaDPGishZKMNwpt61jz7XPWWzjCHX4k7FM8LRlSM0Vyi/6N5Ml9Z0L4hVQuqwzab+Xo3dgGXBH3rqfIA10ebvO1ivtv94YCUR1hGraRtFjY6lz1f5d6QkOqroxFutsS4dhWILoLOfQ2i5AGoM4BHc6ra9xqsHhx3AxXMEDeSo5rUTNABwe9I98k3JjR//cdiOOHWd0vZyn6/167xrxwNQz1jKUuckphrFESRAJfRjnHtISRFslRgRPpRCPC9sNgu2rb6E9ByIfffN7OxVTv8jpuhSOozD7nxISP2QD/lXdby2C4yJDpB9R2paTgUBw+UVZNGeIcUmNyVVoF+opz9/lIdjZgIng/IywMUiqTT0Wz0UrZpBElmTVWPIZG2tTb8O25an5Aur/L87s3s1iTCTPecokDSqcFuTM8rR6NIcFUlZMh+1d/r2qS01/rQjleAuJf0yVblDAfEs/ApdNFAmm7nN0KpiKry7pPscuFEr7CvG+Or3cW+rNu1OQj8fK6Pa6a9RvnhIMS5V7Q/Sb6rYvt65TY/moukb0dsvLjbiwfX2QMoOGwNP47NbFEjtRHGOl/7YbOetlVVlw6kZoXnbEXSY6FNj7gvpnd8fPKBw==
+            </data>
+            <key>PayloadDescription</key>
+            <string>Trust local DoH CA</string>
+            <key>PayloadDisplayName</key>
+            <string>Local DoH Root CA</string>
+            <key>PayloadIdentifier</key>
+            <string>net.nymtech.vpn.ca</string>
+            <key>PayloadType</key>
+            <string>com.apple.security.root</string>
+            <key>PayloadUUID</key>
+            <string>D3AC0275-4F55-4DAA-A51D-1095B5935F5D</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>Local DoH Trust</string>
+    <key>PayloadIdentifier</key>
+    <string>net.nymtech.vpn.doh-trust</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>E2B97661-51A7-46A0-A067-02D9CC4CE1B8</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
