@@ -218,6 +218,8 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "ios")]
+    pub filtering_resolver_addr: SocketAddr,
 }
 
 pub struct TunnelMonitor {
@@ -1569,13 +1571,22 @@ impl TunnelMonitor {
 
         let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
 
+        let mut dns_servers = self
+            .tunnel_parameters
+            .tunnel_settings
+            .dns
+            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
+            .to_vec();
+
+        #[cfg(target_os = "ios")]
+        {
+            if self.tunnel_parameters.tunnel_settings.enable_ad_blocking {
+                dns_servers = vec![self.tunnel_parameters.filtering_resolver_addr.ip()];
+            }
+        }
+
         let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-            dns_servers: self
-                .tunnel_parameters
-                .tunnel_settings
-                .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                .to_vec(),
+            dns_servers: dns_servers,
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,

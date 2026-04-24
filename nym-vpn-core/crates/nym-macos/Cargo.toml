@@ -10,7 +10,7 @@ edition.workspace = true
 [lints]
 workspace = true
 
-[target.'cfg(target_os="macos")'.dependencies]
+[target.'cfg(any(target_os="macos", target_os="ios"))'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "ioctl"] }
 tracing.workspace = true
 tokio.workspace = true

@@ -4,7 +4,7 @@
 
 //! Interface with macOS-specific bits.
 
-#![cfg(target_os = "macos")]
-
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod net;
+#[cfg(target_os = "macos")]
 pub mod process;
