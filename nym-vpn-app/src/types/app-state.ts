@@ -49,6 +49,8 @@ export type InitState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  /// User-defined MTU override; `null` = use platform defaults (toggle off).
+  mtu: number | null;
 };
 
 export type AppState = {
@@ -110,4 +112,6 @@ export type AppState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  /// User-defined MTU override; `null` = use platform defaults (toggle off).
+  mtu: number | null;
 };

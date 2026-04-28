@@ -144,6 +144,7 @@ dayjs.extend(localizedFormat);
     mixnetTrafficDefaults:
       config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
     splitTunnel: config?.splitTunnel || defaultSplitTunnel,
+    mtu: config?.mtu ?? null,
   };
   console.log('initial state:', initState);
 

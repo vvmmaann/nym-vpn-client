@@ -315,6 +315,15 @@ message VpnServiceConfig {
   SplitTunnelSettings split_tunnel = 28;
   AirportingSettings airporting = 29;
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
+  // User-defined MTU override for the user-facing tunnel interface.
+  // Absent = use platform defaults.
+  optional uint32 mtu = 31;
+}
+
+// Set the MTU override for the user-facing tunnel interface.
+// `mtu` absent = clear override (use platform defaults).
+message SetMtuRequest {
+  optional uint32 mtu = 1;
 }
 
 message NetworkStatsConfig {
@@ -1117,6 +1126,7 @@ service NymVpnService {
   rpc SetAirportingExcludedCountries(StringList) returns (google.protobuf.Empty) {}
   rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetMtu(SetMtuRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

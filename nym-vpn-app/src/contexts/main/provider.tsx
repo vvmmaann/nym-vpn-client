@@ -36,6 +36,7 @@ function MainStateProvider({ children, init }: Props) {
     mixnetTrafficConfig: init.mixnetTrafficConfig,
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
     splitTunnel: init.splitTunnel,
+    mtu: init.mtu,
   });
 
   const { push } = useInAppNotify();

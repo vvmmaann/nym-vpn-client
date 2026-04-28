@@ -36,6 +36,7 @@ pub struct VpnServiceConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub airporting: AirportingSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub mtu: Option<u16>,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
@@ -89,6 +90,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             split_tunnel,
             airporting,
             gateway_selection_algorithm_config,
+            mtu: value.mtu,
         })
     }
 }

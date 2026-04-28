@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router';
 import {
   AccountRouteIndex,
   AccountScreen,
+  AdvancedNetworking,
   AntiCensorship,
   Appearance,
   AppearanceRouteIndex,
@@ -49,6 +50,7 @@ export const routes = {
   lang: '/settings/appearance/lang',
   dns: '/settings/dns',
   antiCensorship: '/settings/anti-censorship',
+  advancedNetworking: '/settings/advanced-networking',
   socks5: '/settings/socks5',
   dataPrivacy: '/settings/data-privacy',
   logs: '/settings/data-privacy/logs',
@@ -190,6 +192,11 @@ const router = createBrowserRouter([
           {
             path: routes.antiCensorship,
             Component: AntiCensorship,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.advancedNetworking,
+            Component: AdvancedNetworking,
             errorElement: <Error />,
           },
           {

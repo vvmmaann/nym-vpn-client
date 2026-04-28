@@ -51,6 +51,10 @@ pub struct VpnServiceConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub airporting: AirportingSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    /// User-defined MTU override for the user-facing tunnel interface.
+    /// `None` means use platform defaults; `Some(x)` overrides the exit-side MTU
+    /// (entry-side is derived as `x + WG_TUNNEL_OVERHEAD` for WireGuard mode).
+    pub mtu: Option<u16>,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -96,6 +100,10 @@ impl fmt::Display for VpnServiceConfig {
             "gateway selection algorithm: {}",
             self.gateway_selection_algorithm_config
         )?;
+        match self.mtu {
+            Some(mtu) => writeln!(f, "mtu: {mtu}")?,
+            None => writeln!(f, "mtu: default")?,
+        };
 
         Ok(())
     }
@@ -126,6 +134,7 @@ impl Default for VpnServiceConfig {
             split_tunnel: SplitTunnelSettings::default(),
             airporting: AirportingSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
+            mtu: None,
         }
     }
 }

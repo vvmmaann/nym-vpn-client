@@ -90,7 +90,8 @@ export type StateAction =
   | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
   | { type: 'set-account-summary'; summary: TAccountSummary | null }
   | { type: 'set-enable-split-tunnel'; enabled: boolean }
-  | { type: 'set-split-tunnel-apps'; apps: SplitApp[] };
+  | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
+  | { type: 'set-mtu'; mtu: number | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -169,6 +170,7 @@ export const initialState: AppState = {
     enabled: false,
     apps: [],
   },
+  mtu: null,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -238,6 +240,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
         enableAdBlocking: action.config.enableAdBlocking,
         splitTunnel: action.config.splitTunnel,
+        mtu: action.config.mtu ?? null,
       };
 
     case 'set-daemon-info':
@@ -513,6 +516,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
           ...state.splitTunnel,
           apps: action.apps,
         },
+      };
+    case 'set-mtu':
+      return {
+        ...state,
+        mtu: action.mtu,
       };
     case 'reset':
       return initialState;

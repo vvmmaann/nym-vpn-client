@@ -104,7 +104,12 @@ impl GeoIpProvider {
         client: impl GeoIpClient,
         query_control: Arc<Mutex<QueryControl>>,
     ) -> Self {
-        let latest_location = if query_control.lock().await.can_query() {
+        // Snapshot the query state and drop the lock *before* the network call,
+        // otherwise a slow `latest_geo_ip` call holds the mutex and blocks
+        // `set_active_geo_location` (called during state transitions) for the
+        // duration of the request.
+        let can_query = query_control.lock().await.can_query();
+        let latest_location = if can_query {
             client
                 .latest_geo_ip()
                 .await
@@ -122,10 +127,18 @@ impl GeoIpProvider {
     }
 
     pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
-        let control = self.query_control.lock().await;
-        if control.should_clear_location() {
+        // Same pattern as `new`: snapshot and release the lock before the
+        // network call. Holding it across `latest_geo_ip().await` causes
+        // state transitions like `disallow_networking` (which acquires the
+        // same lock to deactivate queries) to block until the request
+        // completes/times out — observed as ~30s WG→Mixnet hangs.
+        let (should_clear, can_query) = {
+            let control = self.query_control.lock().await;
+            (control.should_clear_location(), control.can_query())
+        };
+        if should_clear {
             self.latest_location = None;
-        } else if control.can_query() {
+        } else if can_query {
             self.latest_location = Some(self.client.latest_geo_ip().await?.into());
         }
         Ok(())

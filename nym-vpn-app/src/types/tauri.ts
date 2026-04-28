@@ -540,6 +540,7 @@ export type VpndConfig = {
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  mtu: number | null;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

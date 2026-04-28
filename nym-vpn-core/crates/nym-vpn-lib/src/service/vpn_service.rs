@@ -104,6 +104,7 @@ pub enum VpnServiceCommand {
         GatewaySelectionAlgorithm,
     ),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
+    SetMtu(oneshot::Sender<()>, Option<u16>),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -1004,6 +1005,10 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
+            VpnServiceCommand::SetMtu(tx, mtu) => {
+                self.handle_set_mtu(mtu).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1314,6 +1319,11 @@ impl NymVpnService {
         self.config_manager
             .set_residential_exit(residential_exit)
             .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_mtu(&mut self, mtu: Option<u16>) {
+        self.config_manager.set_mtu(mtu).await;
         self.update_tunnel_settings_with_throttle();
     }
 

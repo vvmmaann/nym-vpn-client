@@ -221,6 +221,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             split_tunnel,
             airporting,
             gateway_selection_algorithm_config,
+            mtu: value.mtu,
         };
 
         Ok(VpnServiceConfigExt::V9(v9))
